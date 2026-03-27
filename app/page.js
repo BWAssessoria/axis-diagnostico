@@ -490,6 +490,7 @@ function Input({q,value,onChange,err}){
   if(q.t==="long"||q.t==="long_xl")return(<textarea value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} rows={q.t==="long_xl"?7:3} style={{...base,resize:"vertical"}} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
   if(q.id==="whatsapp")return(<input type="tel" value={fmtPhone(value)} onChange={e=>onChange(fmtPhone(e.target.value))} placeholder="(00) 00000-0000" maxLength={16} style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
   if(q.p==="R$")return(<input type="text" inputMode="numeric" value={value?fmtMoney(value):""} onChange={e=>onChange(fmtMoney(e.target.value))} placeholder="R$ 0" style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
+  if(q.id==="maior_fat"){const prefixR=v=>{if(!v)return "";const s=v.startsWith("R$")||v.startsWith("r$")?v:"R$ "+v;return s;};return(<input type="text" value={value||""} onChange={e=>{const v=e.target.value;onChange(v&&!v.startsWith("R$")&&!v.startsWith("r$")?"R$ "+v:v);}} placeholder="Ex: R$ 112.000 em out/2025" style={base} onFocus={e=>{if(!value)onChange("R$ ");onFocusStyle(e);}} onBlur={e=>{if(value==="R$ ")onChange("");onBlurStyle(e);}}/>);}
   return(<input type="text" value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
 }
 
