@@ -479,11 +479,18 @@ function Ring({v,max,color,size=60}){
   </div>);
 }
 
+const fmtPhone=v=>{const d=(v||"").replace(/\D/g,"").slice(0,11);if(d.length<=2)return d.length?`(${d}`:"";if(d.length<=6)return `(${d.slice(0,2)}) ${d.slice(2)}`;if(d.length<=10)return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
+const fmtMoney=v=>{const d=(v||"").replace(/\D/g,"");if(!d)return "";const n=parseInt(d,10);return "R$ "+n.toLocaleString("pt-BR");};
+
 function Input({q,value,onChange,err}){
   const base={width:"100%",boxSizing:"border-box",fontFamily:"inherit",fontSize:15,color:T,border:`1.5px solid ${err?R:BD}`,borderRadius:10,padding:"12px 16px",outline:"none",transition:"border-color 0.2s,box-shadow 0.2s",background:IB,lineHeight:1.6};
+  const onFocusStyle=e=>{e.target.style.borderColor=O;e.target.style.boxShadow=`0 0 0 3px ${O}18`;};
+  const onBlurStyle=e=>{e.target.style.borderColor=err?R:BD;e.target.style.boxShadow="none";};
   if(q.t==="sel")return(<div style={{display:"flex",flexWrap:"wrap",gap:8}}>{q.o.map(opt=>{const s=value===opt;return(<button key={opt} onClick={()=>onChange(opt)} style={{padding:"8px 16px",borderRadius:20,fontSize:14,cursor:"pointer",fontWeight:s?600:400,border:`1.5px solid ${s?O:BD}`,background:s?OL:C,color:s?O:T2,transition:"all 0.2s"}}>{opt}</button>);})}</div>);
-  if(q.t==="long"||q.t==="long_xl")return(<textarea value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} rows={q.t==="long_xl"?7:3} style={{...base,resize:"vertical"}} onFocus={e=>{e.target.style.borderColor=O;e.target.style.boxShadow=`0 0 0 3px ${O}18`}} onBlur={e=>{e.target.style.borderColor=err?R:BD;e.target.style.boxShadow="none"}}/>);
-  return(<input type="text" value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} style={base} onFocus={e=>{e.target.style.borderColor=O;e.target.style.boxShadow=`0 0 0 3px ${O}18`}} onBlur={e=>{e.target.style.borderColor=err?R:BD;e.target.style.boxShadow="none"}}/>);
+  if(q.t==="long"||q.t==="long_xl")return(<textarea value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} rows={q.t==="long_xl"?7:3} style={{...base,resize:"vertical"}} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
+  if(q.id==="whatsapp")return(<input type="tel" value={fmtPhone(value)} onChange={e=>onChange(fmtPhone(e.target.value))} placeholder="(00) 00000-0000" maxLength={16} style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
+  if(q.p==="R$")return(<input type="text" inputMode="numeric" value={value?fmtMoney(value):""} onChange={e=>onChange(fmtMoney(e.target.value))} placeholder="R$ 0" style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
+  return(<input type="text" value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
 }
 
 function Sec({s,ans,setAns,open,toggle,errs}){
@@ -808,8 +815,8 @@ export default function App(){
           {[...clients].reverse().map(c=>(
             <div key={c._id} onClick={()=>setSelClient(c)} style={{background:C,borderRadius:14,padding:"20px 24px",border:`1px solid ${BD}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
               <div>
-                <div style={{fontSize:16,fontWeight:700,color:T}}>{c.nome_clinica}</div>
-                <div style={{fontSize:13,color:T2}}>{c.nome} · {c.cidade_estado}</div>
+                <div style={{fontSize:20,fontWeight:700,color:T}}>{c.nome_clinica}</div>
+                <div style={{fontSize:16,color:T2}}>{c.nome} · {c.cidade_estado}</div>
               </div>
               <svg width={16} height={16} viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke={T2} strokeWidth={2} fill="none"/></svg>
             </div>
