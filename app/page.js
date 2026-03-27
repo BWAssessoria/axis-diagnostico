@@ -860,7 +860,7 @@ export default function App(){
       {mode==="login"?(
         <div style={{maxWidth:400,margin:"100px auto",padding:40,background:C,borderRadius:20,border:`1px solid ${BD}`,textAlign:"center"}}>
           <h2 style={{color:T}}>Acesso Admin</h2>
-          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="Senha" style={{width:"100%",boxSizing:"border-box",padding:14,marginBottom:12,borderRadius:10,border:`1px solid ${BD}`,background:IB,fontFamily:"inherit",fontSize:15}}/>
+          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="Senha" style={{width:"100%",boxSizing:"border-box",padding:14,marginBottom:12,borderRadius:10,border:`1px solid ${BD}`,background:IB,color:T,fontFamily:"inherit",fontSize:15}}/>
           <button onClick={handleLogin} style={{width:"100%",padding:14,background:O,color:"#fff",border:"none",borderRadius:10,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:15}}>Entrar</button>
           <button onClick={()=>setMode("form")} style={{marginTop:12,background:"none",border:"none",color:T2,cursor:"pointer"}}>Voltar</button>
           {passErr&&<p style={{color:R,fontSize:13,marginTop:12}}>Senha incorreta</p>}
