@@ -1,6 +1,9 @@
+@import "tailwindcss";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --axis-orange: #FF4500;
 }
 
 @media (prefers-color-scheme: dark) {

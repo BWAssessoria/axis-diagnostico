@@ -555,7 +555,7 @@ function Dashboard({data,onBack}){
       <div style={{maxWidth:880,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <button onClick={onBack} style={{background:"none",border:"none",fontSize:14,fontWeight:600,cursor:"pointer",color:O,padding:0}}>← Voltar</button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontWeight:800,fontSize:16,color:O,letterSpacing:2}}>A</span><span style={{fontWeight:800,fontSize:16,color:DK,letterSpacing:2}}>XIS</span>
+          <span style={{fontWeight:800,fontSize:16,letterSpacing:2}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
           <span style={{color:T3,fontSize:11,fontWeight:600,letterSpacing:1}}>· AXIS 360</span>
         </div>
         <span style={{fontSize:12,color:T2}}>{today}</span>
@@ -806,22 +806,78 @@ export default function App(){
   if(mode==="dash"&&selClient) return(<Dashboard data={selClient} onBack={()=>setSelClient(null)}/>);
 
   if(mode==="dash") return(
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",padding:32}}>
-      <div style={{maxWidth:700,margin:"0 auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:32}}>
-          <h2>Mapeamentos Recebidos</h2>
-          <button onClick={()=>{setMode("form");setPass("");}} style={{cursor:"pointer",padding:"8px 16px",borderRadius:8,border:`1px solid ${BD}`}}>Sair</button>
+    <div style={{minHeight:"100vh",background:"#F7F8FA",fontFamily:"inherit"}}>
+      <div style={{height:4,background:`linear-gradient(90deg,${O},#FF7043)`}}/>
+      {/* TOPBAR */}
+      <div style={{background:C,borderBottom:`1px solid ${BD}`,padding:"16px 32px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontWeight:800,fontSize:20,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
+          <span style={{fontSize:12,fontWeight:600,color:T3,letterSpacing:1,textTransform:"uppercase"}}>· Admin</span>
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {[...clients].reverse().map(c=>(
-            <div key={c._id} onClick={()=>setSelClient(c)} style={{background:C,borderRadius:14,padding:"20px 24px",border:`1px solid ${BD}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <a href="/dashboard" style={{fontSize:13,fontWeight:600,color:O,padding:"7px 16px",borderRadius:8,border:`1.5px solid ${OB}`,background:OL,cursor:"pointer",textDecoration:"none"}}>Dashboard Completo →</a>
+          <button onClick={()=>{setMode("form");setPass("");}} style={{cursor:"pointer",padding:"7px 16px",borderRadius:8,border:`1px solid ${BD}`,background:C,fontSize:13,color:T2,fontFamily:"inherit"}}>Sair</button>
+        </div>
+      </div>
+
+      <div style={{maxWidth:820,margin:"0 auto",padding:"32px 24px"}}>
+        {/* HEADER */}
+        <div style={{marginBottom:28}}>
+          <h2 style={{fontSize:24,fontWeight:800,color:T,margin:"0 0 4px"}}>Mapeamentos Recebidos</h2>
+          <p style={{color:T2,fontSize:14,margin:0}}>{clients.length} {clients.length===1?"mapeamento":"mapeamentos"} · clique para ver o diagnóstico completo</p>
+        </div>
+
+        {/* STATS ROW */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:28}}>
+          {[
+            {label:"Total de Leads",val:clients.length,icon:"📋",color:B,bg:BL},
+            {label:"Saúde Média",val:(()=>{if(!clients.length)return"—";const avg=clients.reduce((s,c)=>{const r=analyze(c);const t=Object.values(r.scores).reduce((a,b)=>a+b,0);const m=Object.values(r.maxS).reduce((a,b)=>a+b,0);return s+(t/m*100);},0)/clients.length;return Math.round(avg)+"%";})(),icon:"📊",color:G,bg:GL},
+            {label:"Leads este mês",val:(()=>{const now=new Date();return clients.filter(c=>{if(!c._ts)return false;const d=new Date(c._ts);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;})(),icon:"📅",color:O,bg:OL},
+          ].map(st=>(
+            <div key={st.label} style={{background:C,borderRadius:14,padding:"18px 20px",border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:16}}>
+              <div style={{width:44,height:44,borderRadius:12,background:st.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{st.icon}</div>
               <div>
-                <div style={{fontSize:20,fontWeight:700,color:T}}>{c.nome_clinica}</div>
-                <div style={{fontSize:16,color:T2}}>{c.nome} · {c.cidade_estado}</div>
+                <div style={{fontSize:22,fontWeight:800,color:st.color}}>{st.val}</div>
+                <div style={{fontSize:12,color:T2,marginTop:1}}>{st.label}</div>
               </div>
-              <svg width={16} height={16} viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke={T2} strokeWidth={2} fill="none"/></svg>
             </div>
           ))}
+        </div>
+
+        {/* CLIENT LIST */}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {[...clients].reverse().map(c=>{
+            const res=analyze(c);
+            const total=Object.values(res.scores).reduce((a,b)=>a+b,0);
+            const maxT=Object.values(res.maxS).reduce((a,b)=>a+b,0);
+            const saude=Math.round(total/maxT*100);
+            const nv=nivelFn(saude);
+            const dt=c._ts?new Date(c._ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"—";
+            return(
+              <div key={c._id} onClick={()=>setSelClient(c)} style={{background:C,borderRadius:14,padding:"18px 24px",border:`1px solid ${BD}`,cursor:"pointer",display:"flex",alignItems:"center",gap:20,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",transition:"box-shadow 0.2s,border-color 0.2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 16px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor=OB;}}
+                onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.04)";e.currentTarget.style.borderColor=BD;}}>
+                {/* Avatar */}
+                <div style={{width:46,height:46,borderRadius:12,background:OL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:800,color:O,flexShrink:0}}>
+                  {(c.nome_clinica||"?")[0].toUpperCase()}
+                </div>
+                {/* Info */}
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                    <span style={{fontSize:16,fontWeight:700,color:T}}>{c.nome_clinica}</span>
+                    <span style={{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:20,background:nv.bg,color:nv.color}}>{saude}% · {nv.label}</span>
+                  </div>
+                  <div style={{fontSize:13,color:T2,marginTop:3}}>{c.nome}{c.cidade_estado?` · ${c.cidade_estado}`:""}</div>
+                </div>
+                {/* Meta & Data */}
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <div style={{fontSize:13,fontWeight:700,color:G}}>{c.fat_atual||"—"}</div>
+                  <div style={{fontSize:11,color:T3,marginTop:2}}>{dt}</div>
+                </div>
+                <svg width={16} height={16} viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke={T3} strokeWidth={2} fill="none"/></svg>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -845,7 +901,7 @@ export default function App(){
         <div style={{maxWidth:640,margin:"0 auto"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <div style={{display:"flex",alignItems:"center",gap:16}}>
-              <div style={{cursor:"pointer"}} onClick={()=>setMode("login")}><span style={{fontWeight:800,fontSize:20,color:O,letterSpacing:1.5}}>A</span><span style={{fontWeight:800,fontSize:20,color:DK,letterSpacing:1.5}}>XIS</span></div>
+              <div style={{cursor:"pointer"}} onClick={()=>setMode("login")}><span style={{fontWeight:800,fontSize:20,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span></div>
               <div style={{width:1,height:28,background:BD}}/>
               <span style={{color:T2,fontSize:12,fontWeight:600,letterSpacing:0.5,textTransform:"uppercase"}}>AXIS 360</span>
             </div>
