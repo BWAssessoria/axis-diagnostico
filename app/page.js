@@ -3,13 +3,13 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  "https://axmgdllmvsjtuwvrabiz.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4bWdkbGxtdnNqdHV3dnJhYml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDQxMzgsImV4cCI6MjA5MDEyMDEzOH0.QAA9v-8XyGZqK4ET9se4NVg1vYpFo1PnqBghAiruz8s"
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 const O="#FF4500",OL="#FFF4F0",OB="#FFD4C4",G="#00C853",GL="#E8F9EF",R="#E53935",RL="#FFEBEE",Y="#FF9800",YL="#FFF8E1",B="#2196F3",BL="#E3F2FD";
 const T="#2D2D2D",T2="#6B6B6B",T3="#999",BD="#E8E8E8",BG="#FAFAFA",C="#FFFFFF",IB="#F5F5F5",DK="#1A1A1A";
-const TEAM_PASS = "axis2026";
+const TEAM_PASS = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "axis2026";
 
 const DEMO_CLIENT = {
   _id:"demo-001",_ts:"2026-03-23T14:00:00Z",
