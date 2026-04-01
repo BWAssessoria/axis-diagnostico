@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
+import {
+  ArrowLeft, ChevronRight, CheckCircle2, AlertCircle, XCircle,
+  Building2, Users, BarChart3, TrendingUp, DollarSign, Target,
+  Megaphone, Settings2, Trophy, Search, LogOut, Shield,
+  LayoutDashboard, Sparkles, Zap, MapPin, Phone, Clock,
+  Activity, PieChart, Star, BadgeCheck, Briefcase
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -267,7 +274,7 @@ function ClienteDetalhe({data, onBack}) {
 
       {/* TOPBAR */}
       <div style={{background:C,borderBottom:`1px solid ${BD}`,padding:"14px 32px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:10}}>
-        <button onClick={onBack} style={{background:"none",border:"none",fontSize:14,fontWeight:600,cursor:"pointer",color:O,padding:0,fontFamily:"inherit"}}>← Voltar</button>
+        <button onClick={onBack} style={{background:"none",border:"none",fontSize:13,fontWeight:600,cursor:"pointer",color:T2,padding:"6px 10px",borderRadius:8,display:"flex",alignItems:"center",gap:6,fontFamily:"inherit"}}><ArrowLeft size={15}/>Voltar</button>
         <span style={{fontWeight:800,fontSize:16,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
         <span style={{fontSize:12,color:T3}}>{dt}</span>
       </div>
@@ -310,7 +317,7 @@ function ClienteDetalhe({data, onBack}) {
 
         {/* TABS */}
         <div style={{display:"flex",gap:4,marginBottom:16,background:C,borderRadius:12,padding:4,border:`1px solid ${BD}`,width:"fit-content"}}>
-          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}>{t.label}</button>)}
+          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}><t.Icon size={14} strokeWidth={1.8}/>{t.label}</button>)}
         </div>
 
         {/* TAB: VISÃO GERAL */}
@@ -372,7 +379,7 @@ function ClienteDetalhe({data, onBack}) {
             <div style={{background:C,borderRadius:20,padding:28,border:`1.5px solid ${icp.prodCor}33`}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,flexWrap:"wrap",marginBottom:24}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:T3,marginBottom:8}}>ICP SCORE · AXIS CLINIC BRASIL</div>
+                  <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T3,marginBottom:8,display:"flex",alignItems:"center",gap:6}}><Sparkles size={12} color={icp.prodCor}/>ICP SCORE · AXIS CLINIC BRASIL</div>
                   <div style={{display:"flex",alignItems:"center",gap:14}}>
                     <span style={{fontSize:52,fontWeight:900,color:icp.prodCor,lineHeight:1}}>{icp.icpPct}%</span>
                     <div>
@@ -410,10 +417,10 @@ function ClienteDetalhe({data, onBack}) {
                 {icp.criterios.map((cr,i)=>{
                   const bg=cr.ok===true?GL:cr.ok==="parcial"?YL:RL;
                   const clr=cr.ok===true?G:cr.ok==="parcial"?Y:R;
-                  const icon=cr.ok===true?"✓":cr.ok==="parcial"?"~":"✗";
+                  const Icon=cr.ok===true?CheckCircle2:cr.ok==="parcial"?AlertCircle:XCircle;
                   return(
                     <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 14px",borderRadius:10,background:bg}}>
-                      <span style={{color:clr,fontWeight:800,fontSize:14,flexShrink:0,width:20,textAlign:"center"}}>{icon}</span>
+                      <Icon size={16} color={clr} strokeWidth={2} style={{flexShrink:0}}/>
                       <span style={{fontSize:13,color:T,lineHeight:1.5}}>{cr.txt}</span>
                     </div>
                   );
@@ -423,7 +430,7 @@ function ClienteDetalhe({data, onBack}) {
 
             {/* Recomendação PAC */}
             <div style={{background:"linear-gradient(135deg,#1A1A2E,#16213E)",borderRadius:20,padding:28,color:"#fff"}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:OB,marginBottom:16}}>RECOMENDAÇÃO DE ENTREGA — PAC</div>
+              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:OB,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><Zap size={12} color={O}/>RECOMENDAÇÃO DE ENTREGA — PAC</div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                 {getPacRecomendacoes(icp.produto, icp.plano, data).map((item,i)=>(
                   <div key={i} style={{background:"rgba(255,255,255,0.06)",borderRadius:12,padding:"14px 16px",border:"1px solid rgba(255,255,255,0.08)"}}>
@@ -530,11 +537,12 @@ function DashboardMain({clients, onSelectClient}) {
     return {saudeMedia,icpMedia,fatTotal,assCount,implCount};
   },[clients]);
 
-  const TABS = [{id:"clientes",label:"Clientes"},{id:"analytics",label:"Analytics"}];
+  const TABS = [{id:"clientes",label:"Clientes",Icon:Users},{id:"analytics",label:"Analytics",Icon:BarChart3}];
   const tabBtn = (t) => ({
-    padding:"8px 18px",borderRadius:8,border:"none",cursor:"pointer",
+    padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",
     fontFamily:"inherit",fontSize:13,fontWeight:600,transition:"all 0.2s",
     background:tab===t.id?O:"transparent", color:tab===t.id?"#fff":T2,
+    display:"flex",alignItems:"center",gap:6,
   });
 
   return (
@@ -547,9 +555,9 @@ function DashboardMain({clients, onSelectClient}) {
           <span style={{fontSize:12,fontWeight:600,color:T3,letterSpacing:1}}>· DASHBOARD</span>
         </div>
         <div style={{display:"flex",gap:4,background:"#F0F0F0",borderRadius:10,padding:3}}>
-          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}>{t.label}</button>)}
+          {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}><t.Icon size={14} strokeWidth={1.8}/>{t.label}</button>)}
         </div>
-        <a href="/" style={{fontSize:13,color:T2,textDecoration:"none",padding:"7px 14px",borderRadius:8,border:`1px solid ${BD}`,background:C}}>← Voltar ao site</a>
+        <a href="/" style={{fontSize:13,color:T2,textDecoration:"none",padding:"7px 14px",borderRadius:9,border:`1px solid ${BD}`,background:C,display:"flex",alignItems:"center",gap:6}}><ArrowLeft size={14}/>Voltar ao site</a>
       </div>
 
       <div style={{maxWidth:960,margin:"0 auto",padding:"28px 24px 80px"}}>
@@ -558,16 +566,18 @@ function DashboardMain({clients, onSelectClient}) {
         {stats&&(
           <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:28}}>
             {[
-              {label:"Total Leads",val:clients.length,color:T,icon:"📋"},
-              {label:"Saúde Média",val:stats.saudeMedia+"%",color:G,icon:"📊"},
-              {label:"ICP Médio",val:stats.icpMedia+"%",color:B,icon:"🎯"},
-              {label:"Assessoria",val:stats.assCount,color:O,icon:"🏆"},
-              {label:"Implementação",val:stats.implCount,color:Y,icon:"🔧"},
-            ].map(st=>(
-              <div key={st.label} style={{background:C,borderRadius:14,padding:"16px 18px",border:`1px solid ${BD}`,textAlign:"center"}}>
-                <div style={{fontSize:22}}>{st.icon}</div>
-                <div style={{fontSize:24,fontWeight:900,color:st.color,marginTop:6}}>{st.val}</div>
-                <div style={{fontSize:11,color:T2,marginTop:2}}>{st.label}</div>
+              {label:"Total Leads",val:clients.length,color:T,Icon:Users,bg:"#F0F0F2"},
+              {label:"Saúde Média",val:stats.saudeMedia+"%",color:G,Icon:Activity,bg:GL},
+              {label:"ICP Médio",val:stats.icpMedia+"%",color:B,Icon:Target,bg:BL},
+              {label:"Assessoria",val:stats.assCount,color:O,Icon:BadgeCheck,bg:OL},
+              {label:"Implementação",val:stats.implCount,color:Y,Icon:Settings2,bg:YL},
+            ].map(({Icon,...st})=>(
+              <div key={st.label} style={{background:C,borderRadius:14,padding:"16px 18px",border:`1px solid ${BD}`,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+                <div style={{width:36,height:36,borderRadius:10,background:st.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}>
+                  <Icon size={17} color={st.color} strokeWidth={1.8}/>
+                </div>
+                <div style={{fontSize:22,fontWeight:900,color:st.color,lineHeight:1}}>{st.val}</div>
+                <div style={{fontSize:11,color:T3,marginTop:4,fontWeight:500}}>{st.label}</div>
               </div>
             ))}
           </div>
@@ -580,11 +590,14 @@ function DashboardMain({clients, onSelectClient}) {
               <h2 style={{fontSize:18,fontWeight:800,color:T,margin:0}}>
                 {filtered.length} {filtered.length===1?"cliente":"clientes"}
               </h2>
-              <input
-                value={search} onChange={e=>setSearch(e.target.value)}
-                placeholder="Buscar por nome, clínica ou cidade..."
-                style={{padding:"9px 16px",borderRadius:10,border:`1.5px solid ${BD}`,fontSize:13,fontFamily:"inherit",color:T,width:280,outline:"none",background:C}}
-              />
+              <div style={{position:"relative",width:280}}>
+                <Search size={14} color={T3} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+                <input
+                  value={search} onChange={e=>setSearch(e.target.value)}
+                  placeholder="Buscar por nome, clínica ou cidade..."
+                  style={{padding:"9px 16px 9px 34px",borderRadius:10,border:`1.5px solid ${BD}`,fontSize:13,fontFamily:"inherit",color:T,width:"100%",outline:"none",background:C,boxSizing:"border-box"}}
+                />
+              </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[...filtered].reverse().map(c=>{
@@ -621,7 +634,7 @@ function DashboardMain({clients, onSelectClient}) {
                       <div style={{fontSize:11,color:T3,marginTop:2}}>{icp.produto}{icp.plano?` ${icp.plano}`:""}</div>
                     </div>
                     <div style={{fontSize:11,color:T3,flexShrink:0}}>{dt}</div>
-                    <svg width={16} height={16} viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke={T3} strokeWidth={2} fill="none"/></svg>
+                    <ChevronRight size={16} color={T3} strokeWidth={1.8}/>
                   </div>
                 );
               })}
@@ -671,7 +684,7 @@ function DashboardMain({clients, onSelectClient}) {
 
             {/* Top leads por ICP */}
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>TOP LEADS POR ICP SCORE</div>
+              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16,display:"flex",alignItems:"center",gap:6}}><Trophy size={12} color={Y}/>TOP LEADS POR ICP SCORE</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {[...clients].sort((a,b)=>analyzeICP(b).icpPct-analyzeICP(a).icpPct).slice(0,5).map((c,i)=>{
                   const icp=analyzeICP(c);
@@ -726,25 +739,28 @@ export default function DashboardPage() {
   return (
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{background:C,borderRadius:24,padding:"48px 40px",maxWidth:380,width:"100%",border:`1px solid ${BD}`,boxShadow:"0 8px 48px rgba(0,0,0,0.08)",textAlign:"center"}}>
+        <div style={{width:56,height:56,borderRadius:16,background:OL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
+          <Shield size={26} color={O}/>
+        </div>
         <div style={{marginBottom:28}}>
-          <div style={{fontSize:36,fontWeight:900,letterSpacing:2,marginBottom:6}}>
+          <div style={{fontSize:32,fontWeight:900,letterSpacing:1,marginBottom:4}}>
             <span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span>
           </div>
-          <div style={{fontSize:13,color:T3,letterSpacing:1}}>DASHBOARD INTERNO</div>
+          <div style={{fontSize:12,color:T3,letterSpacing:2,fontWeight:600}}>DASHBOARD INTERNO</div>
         </div>
         <input
           type="password" value={pass}
           onChange={e=>setPass(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&handleLogin()}
           placeholder="Senha de acesso"
-          style={{width:"100%",boxSizing:"border-box",padding:"13px 16px",marginBottom:12,borderRadius:12,border:`1.5px solid ${passErr?R:BD}`,background:"#FAFAFA",color:T,fontFamily:"inherit",fontSize:15,outline:"none"}}
+          style={{width:"100%",boxSizing:"border-box",padding:"13px 16px",marginBottom:12,borderRadius:12,border:`1.5px solid ${passErr?R:BD}`,background:"#FAFAFA",color:T,fontFamily:"inherit",fontSize:14,outline:"none"}}
           autoFocus
         />
-        <button onClick={handleLogin} style={{width:"100%",padding:"13px",background:O,color:"#fff",border:"none",borderRadius:12,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:15}}>
+        <button onClick={handleLogin} style={{width:"100%",padding:"13px",background:`linear-gradient(135deg,${O},#FF6030)`,color:"#fff",border:"none",borderRadius:12,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:14,boxShadow:`0 4px 16px ${O}44`}}>
           Entrar
         </button>
-        {passErr&&<p style={{color:R,fontSize:13,marginTop:12}}>Senha incorreta</p>}
-        {loading&&<p style={{color:T3,fontSize:12,marginTop:12}}>Carregando dados...</p>}
+        {passErr&&<p style={{color:R,fontSize:12,marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><AlertCircle size={12}/>Senha incorreta</p>}
+        {loading&&<p style={{color:T3,fontSize:12,marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><Activity size={12}/>Carregando dados...</p>}
       </div>
     </div>
   );

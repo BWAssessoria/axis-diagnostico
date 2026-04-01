@@ -1,6 +1,12 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import {
+  ArrowLeft, ChevronDown, ChevronRight, CheckCircle2, AlertCircle,
+  Building2, MapPin, Phone, Users, BarChart3, Gem, Target, Megaphone,
+  Rocket, TrendingUp, DollarSign, Settings2, Zap, Trophy, LogOut,
+  LayoutDashboard, Search, Shield, Clock, Activity
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -494,26 +500,34 @@ function Input({q,value,onChange,err}){
   return(<input type="text" value={value||""} onChange={e=>onChange(e.target.value)} placeholder={q.p||""} style={base} onFocus={onFocusStyle} onBlur={onBlurStyle}/>);
 }
 
+const SEC_ICONS = {clinica:Building2,fat:BarChart3,serv:Gem,com:Target,mkt:Megaphone,visao:Rocket};
+
 function Sec({s,ans,setAns,open,toggle,errs}){
   const ref=useRef(null);
   const cnt=s.qs.filter(q=>ans[q.id]&&String(ans[q.id]).trim()!=="").length,done=cnt===s.qs.length,he=s.qs.some(q=>errs.includes(q.id));
+  const Icon=SEC_ICONS[s.id]||Building2;
   useEffect(()=>{if(open&&ref.current){setTimeout(()=>{ref.current.scrollIntoView({behavior:"smooth",block:"start"});},100);}},[open]);
-  return(<div ref={ref} style={{background:C,borderRadius:16,overflow:"hidden",border:`1.5px solid ${he?"#FFCDD2":open?OB:BD}`,boxShadow:open?"0 4px 24px rgba(255,69,0,0.06)":"0 1px 4px rgba(0,0,0,0.04)",transition:"all 0.3s",scrollMarginTop:120,marginBottom:12}}>
-    <div onClick={toggle} style={{padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",gap:16,userSelect:"none"}}>
-      <span style={{fontSize:28}}>{s.emoji}</span>
-      <div style={{flex:1}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:2}}>
-          <span style={{fontSize:17,fontWeight:700,color:T}}>{s.title}</span>
-          {done&&<span style={{fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:20,background:GL,color:G}}>Completo ✓</span>}
-          {!done&&cnt>0&&<span style={{fontSize:11,fontWeight:600,padding:"2px 10px",borderRadius:20,background:OL,color:O}}>{cnt}/{s.qs.length}</span>}
-        </div>
-        <span style={{color:T2,fontSize:13}}>{s.sub}</span>
+  return(<div ref={ref} style={{background:C,borderRadius:16,overflow:"hidden",border:`1.5px solid ${he?"#FFCDD2":open?O+"44":BD}`,boxShadow:open?"0 4px 24px rgba(255,69,0,0.07)":"0 1px 3px rgba(0,0,0,0.05)",transition:"all 0.25s",scrollMarginTop:120,marginBottom:10}}>
+    <div onClick={toggle} style={{padding:"18px 22px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,userSelect:"none"}}>
+      <div style={{width:40,height:40,borderRadius:11,background:open?OL:BG,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background 0.2s"}}>
+        <Icon size={18} color={open?O:T2} strokeWidth={1.8}/>
       </div>
-      <svg width={20} height={20} viewBox="0 0 20 20" style={{transition:"transform 0.3s",transform:open?"rotate(180deg)":"rotate(0)"}}><path d="M5 8l5 5 5-5" stroke={T2} strokeWidth={2} fill="none" strokeLinecap="round"/></svg>
+      <div style={{flex:1}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2,flexWrap:"wrap"}}>
+          <span style={{fontSize:15,fontWeight:700,color:T}}>{s.title}</span>
+          {done&&<span style={{display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:20,background:GL,color:G}}><CheckCircle2 size={10}/>Completo</span>}
+          {!done&&cnt>0&&<span style={{fontSize:11,fontWeight:600,padding:"2px 10px",borderRadius:20,background:OL,color:O}}>{cnt}/{s.qs.length}</span>}
+          {he&&<span style={{display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:20,background:RL,color:R}}><AlertCircle size={10}/>Obrigatório</span>}
+        </div>
+        <span style={{color:T3,fontSize:12}}>{s.sub}</span>
+      </div>
+      <div style={{color:T3,transition:"transform 0.25s",transform:open?"rotate(180deg)":"rotate(0)"}}>
+        <ChevronDown size={18} strokeWidth={1.8}/>
+      </div>
     </div>
-    {open&&<div style={{padding:"4px 24px 28px",display:"flex",flexDirection:"column",gap:24,borderTop:`1px solid ${BD}`}}>
-      {s.qs.map((q,i)=>{const he2=errs.includes(q.id);return(<div key={q.id} style={{paddingTop:i===0?20:0}}>
-        <label style={{display:"block",marginBottom:10,color:T,fontSize:14.5,fontWeight:500,lineHeight:1.5}}>{q.l}{q.req&&<span style={{color:O,marginLeft:4}}>*</span>}</label>
+    {open&&<div style={{padding:"4px 22px 26px",display:"flex",flexDirection:"column",gap:22,borderTop:`1px solid ${BD}`}}>
+      {s.qs.map((q,i)=>{const he2=errs.includes(q.id);return(<div key={q.id} style={{paddingTop:i===0?18:0}}>
+        <label style={{display:"block",marginBottom:9,color:T,fontSize:14,fontWeight:500,lineHeight:1.5}}>{q.l}{q.req&&<span style={{color:O,marginLeft:4}}>*</span>}</label>
         <Input q={q} value={ans[q.id]} err={he2} onChange={v=>setAns(p=>({...p,[q.id]:v}))}/>
         {he2&&<span style={{fontSize:12,color:R,marginTop:4,display:"block"}}>Campo obrigatório</span>}
       </div>);})}
@@ -551,14 +565,17 @@ function Dashboard({data,onBack}){
     <div style={{height:4,background:`linear-gradient(90deg,${O},#FF7043)`}}/>
 
     {/* NAV */}
-    <div style={{position:"sticky",top:0,zIndex:10,background:C,borderBottom:`1px solid ${BD}`,padding:"12px 24px"}}>
-      <div style={{maxWidth:880,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <button onClick={onBack} style={{background:"none",border:"none",fontSize:14,fontWeight:600,cursor:"pointer",color:O,padding:0}}>← Voltar</button>
+    <div style={{position:"sticky",top:0,zIndex:10,background:C,borderBottom:`1px solid ${BD}`,padding:"0 24px",boxShadow:"0 1px 8px rgba(0,0,0,0.04)"}}>
+      <div style={{maxWidth:880,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",height:56}}>
+        <button onClick={onBack} style={{background:"none",border:"none",fontSize:13,fontWeight:600,cursor:"pointer",color:T2,padding:"6px 10px",borderRadius:8,display:"flex",alignItems:"center",gap:6,fontFamily:"inherit",transition:"color 0.2s"}}
+          onMouseEnter={e=>e.currentTarget.style.color=O} onMouseLeave={e=>e.currentTarget.style.color=T2}>
+          <ArrowLeft size={15}/> Voltar
+        </button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontWeight:800,fontSize:16,letterSpacing:2}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
-          <span style={{color:T3,fontSize:11,fontWeight:600,letterSpacing:1}}>· AXIS 360</span>
+          <span style={{fontWeight:900,fontSize:16,letterSpacing:1}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
+          <span style={{color:T3,fontSize:10,fontWeight:700,letterSpacing:2}}>360</span>
         </div>
-        <span style={{fontSize:12,color:T2}}>{today}</span>
+        <span style={{fontSize:12,color:T3}}>{today}</span>
       </div>
     </div>
 
@@ -814,9 +831,13 @@ export default function App(){
           <span style={{fontWeight:800,fontSize:20,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
           <span style={{fontSize:12,fontWeight:600,color:T3,letterSpacing:1,textTransform:"uppercase"}}>· Admin</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <a href="/dashboard" style={{fontSize:13,fontWeight:600,color:O,padding:"7px 16px",borderRadius:8,border:`1.5px solid ${OB}`,background:OL,cursor:"pointer",textDecoration:"none"}}>Dashboard Completo →</a>
-          <button onClick={()=>{setMode("form");setPass("");}} style={{cursor:"pointer",padding:"7px 16px",borderRadius:8,border:`1px solid ${BD}`,background:C,fontSize:13,color:T2,fontFamily:"inherit"}}>Sair</button>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <a href="/dashboard" style={{fontSize:13,fontWeight:600,color:O,padding:"7px 14px",borderRadius:9,border:`1.5px solid ${OB}`,background:OL,cursor:"pointer",textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
+            <LayoutDashboard size={14}/>Dashboard
+          </a>
+          <button onClick={()=>{setMode("form");setPass("");}} style={{cursor:"pointer",padding:"7px 12px",borderRadius:9,border:`1px solid ${BD}`,background:C,fontSize:13,color:T2,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
+            <LogOut size={14}/>Sair
+          </button>
         </div>
       </div>
 
@@ -894,49 +915,93 @@ export default function App(){
     </div>
   );
 
+  const pct=Math.round(answered/totalQ*100);
+
   return(
-    <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit"}}>
-      <div style={{height:4,background:`linear-gradient(90deg,${O},#FF7043)`}}/>
-      <div style={{background:C,borderBottom:`1px solid ${BD}`,padding:"28px 24px 24px",position:"sticky",top:0,zIndex:10}}>
+    <div style={{minHeight:"100vh",background:"#F8F9FB",fontFamily:"inherit"}}>
+      <div style={{height:3,background:`linear-gradient(90deg,${O},#FF7043,#FF9800)`}}/>
+
+      {/* HEADER */}
+      <div style={{background:C,borderBottom:`1px solid ${BD}`,padding:"0 24px",position:"sticky",top:0,zIndex:10,boxShadow:"0 1px 12px rgba(0,0,0,0.04)"}}>
         <div style={{maxWidth:640,margin:"0 auto"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <div style={{display:"flex",alignItems:"center",gap:16}}>
-              <div style={{cursor:"pointer"}} onClick={()=>setMode("login")}><span style={{fontWeight:800,fontSize:20,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span></div>
-              <div style={{width:1,height:28,background:BD}}/>
-              <span style={{color:T2,fontSize:12,fontWeight:600,letterSpacing:0.5,textTransform:"uppercase"}}>AXIS 360</span>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:60}}>
+            <div style={{display:"flex",alignItems:"center",gap:14}}>
+              <div style={{cursor:"pointer",display:"flex",alignItems:"center",gap:2}} onClick={()=>setMode("login")}>
+                <span style={{fontWeight:900,fontSize:22,letterSpacing:1}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
+              </div>
+              <div style={{width:1,height:20,background:BD}}/>
+              <span style={{color:T3,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>360</span>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              {saving&&<span style={{fontSize:11,color:T2}}>Salvando...</span>}
-              <Ring v={answered} max={totalQ} color={answered===totalQ?G:O} size={52}/>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              {saving&&<span style={{fontSize:11,color:T3,display:"flex",alignItems:"center",gap:4}}><Activity size={12} color={T3}/>Salvando</span>}
+              <div style={{display:"flex",alignItems:"center",gap:8,background:pct===100?GL:OL,padding:"6px 12px",borderRadius:20}}>
+                <span style={{fontSize:12,fontWeight:700,color:pct===100?G:O}}>{pct}%</span>
+                <div style={{width:60,height:4,background:"rgba(0,0,0,0.08)",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:pct===100?G:O,borderRadius:4,transition:"width 0.4s ease"}}/>
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{height:5,background:"#EEE",borderRadius:10,overflow:"hidden"}}><div style={{height:"100%",borderRadius:10,background:answered===totalQ?G:`linear-gradient(90deg,${O},#FF7043)`,width:`${(answered/totalQ)*100}%`,transition:"width 0.5s ease"}}/></div>
         </div>
       </div>
 
       {mode==="login"?(
-        <div style={{maxWidth:400,margin:"100px auto",padding:40,background:C,borderRadius:20,border:`1px solid ${BD}`,textAlign:"center"}}>
-          <h2 style={{color:T}}>Acesso Admin</h2>
-          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="Senha" style={{width:"100%",boxSizing:"border-box",padding:14,marginBottom:12,borderRadius:10,border:`1px solid ${BD}`,background:IB,color:T,fontFamily:"inherit",fontSize:15}}/>
-          <button onClick={handleLogin} style={{width:"100%",padding:14,background:O,color:"#fff",border:"none",borderRadius:10,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:15}}>Entrar</button>
-          <button onClick={()=>setMode("form")} style={{marginTop:12,background:"none",border:"none",color:T2,cursor:"pointer"}}>Voltar</button>
-          {passErr&&<p style={{color:R,fontSize:13,marginTop:12}}>Senha incorreta</p>}
+        <div style={{maxWidth:380,margin:"80px auto 0",padding:"0 24px"}}>
+          <div style={{background:C,borderRadius:20,padding:"40px 36px",border:`1px solid ${BD}`,boxShadow:"0 8px 40px rgba(0,0,0,0.07)",textAlign:"center"}}>
+            <div style={{width:52,height:52,borderRadius:14,background:OL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
+              <Shield size={24} color={O}/>
+            </div>
+            <h2 style={{fontSize:20,fontWeight:800,color:T,margin:"0 0 6px"}}>Acesso Restrito</h2>
+            <p style={{fontSize:13,color:T3,margin:"0 0 24px"}}>Área exclusiva da equipe AXIS</p>
+            <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="Senha de acesso" style={{width:"100%",boxSizing:"border-box",padding:"13px 16px",marginBottom:10,borderRadius:12,border:`1.5px solid ${passErr?R:BD}`,background:"#FAFAFA",color:T,fontFamily:"inherit",fontSize:14,outline:"none"}}/>
+            <button onClick={handleLogin} style={{width:"100%",padding:"13px",background:O,color:"#fff",border:"none",borderRadius:12,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:14,letterSpacing:0.3}}>Entrar</button>
+            <button onClick={()=>setMode("form")} style={{marginTop:12,background:"none",border:"none",color:T3,cursor:"pointer",fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,margin:"12px auto 0"}}>
+              <ArrowLeft size={14}/> Voltar ao formulário
+            </button>
+            {passErr&&<p style={{color:R,fontSize:12,marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><AlertCircle size={12}/>Senha incorreta</p>}
+          </div>
         </div>
       ):(
-        <div style={{maxWidth:640,margin:"0 auto",padding:"24px"}}>
+        <div style={{maxWidth:640,margin:"0 auto",padding:"20px 20px"}}>
           {!welcomed?(
-            <div style={{background:C,borderRadius:20,padding:40,textAlign:"center",border:`1px solid ${BD}`,marginTop:16}}>
-              <div style={{width:64,height:64,borderRadius:"50%",background:OL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",fontSize:30}}>🧭</div>
-              <h1 style={{fontSize:26,fontWeight:900,color:T,margin:"0 0 16px"}}>Bem-vindo ao AXIS 360</h1>
-              <p style={{fontSize:15,color:T2,lineHeight:1.85,maxWidth:480,margin:"0 auto 32px"}}>
-                Este é o mapeamento estratégico completo da sua clínica. As informações que você compartilhar aqui são a base de tudo — é com elas que nossa equipe constrói o plano de ação, define as prioridades e conduz cada etapa do projeto com precisão. Separe de 15 a 20 minutos, responda com calma e seja o mais específico(a) possível. Quanto mais detalhado, mais certeiro será o nosso trabalho.
-              </p>
-              <button onClick={()=>setWelcomed(true)} style={{background:O,color:"#fff",border:"none",borderRadius:12,padding:"16px 32px",fontSize:16,fontWeight:700,cursor:"pointer",letterSpacing:0.3}}>Iniciar mapeamento →</button>
+            <div style={{marginTop:20}}>
+              {/* Hero card */}
+              <div style={{background:C,borderRadius:20,overflow:"hidden",border:`1px solid ${BD}`,boxShadow:"0 2px 20px rgba(0,0,0,0.05)"}}>
+                <div style={{background:`linear-gradient(135deg,#1A1A2E,#0F3460)`,padding:"40px 40px 36px",textAlign:"center"}}>
+                  <div style={{width:60,height:60,borderRadius:16,background:"rgba(255,69,0,0.2)",border:"1px solid rgba(255,69,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
+                    <Target size={28} color={O}/>
+                  </div>
+                  <h1 style={{fontSize:28,fontWeight:900,color:"#fff",margin:"0 0 10px",letterSpacing:-0.5}}>AXIS 360</h1>
+                  <p style={{fontSize:14,color:"rgba(255,255,255,0.5)",margin:0,letterSpacing:1.5,fontWeight:600}}>MAPEAMENTO ESTRATÉGICO</p>
+                </div>
+                <div style={{padding:"32px 40px 36px"}}>
+                  <p style={{fontSize:15,color:T2,lineHeight:1.9,margin:"0 0 28px",textAlign:"center"}}>
+                    Este mapeamento é a base de todo o nosso trabalho. Com as suas respostas, nossa equipe constrói o plano de ação, define prioridades e conduz cada etapa com precisão.<br/><br/>
+                    <strong style={{color:T}}>Separe 15–20 minutos</strong> e responda com calma. Quanto mais detalhado, mais certeiro o resultado.
+                  </p>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:28}}>
+                    {[{icon:Clock,label:"15–20 min",sub:"para preencher"},{icon:Shield,label:"100% seguro",sub:"dados protegidos"},{icon:TrendingUp,label:"Plano real",sub:"não genérico"}].map(it=>(
+                      <div key={it.label} style={{textAlign:"center",padding:"16px 12px",borderRadius:12,background:"#F8F9FB",border:`1px solid ${BD}`}}>
+                        <it.icon size={20} color={O} style={{marginBottom:8}}/>
+                        <div style={{fontSize:13,fontWeight:700,color:T}}>{it.label}</div>
+                        <div style={{fontSize:11,color:T3,marginTop:2}}>{it.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={()=>setWelcomed(true)} style={{width:"100%",background:`linear-gradient(135deg,${O},#FF6030)`,color:"#fff",border:"none",borderRadius:13,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",letterSpacing:0.3,display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 20px ${O}44`}}>
+                    Iniciar mapeamento <ChevronRight size={18}/>
+                  </button>
+                </div>
+              </div>
             </div>
           ):(
             <>
-              {sections.map(s=><Sec key={s.id} s={s} ans={ans} setAns={setAns} open={openId===s.id} errs={errs} toggle={()=>setOpenId(openId===s.id?null:s.id)}/>)}
-              <button onClick={handleSubmit} style={{width:"100%",background:O,color:"#fff",border:"none",borderRadius:12,padding:"16px",fontSize:16,fontWeight:700,cursor:"pointer",marginTop:20}}>Enviar mapeamento</button>
+              <div style={{marginBottom:8,paddingTop:4}}>
+                {sections.map(s=><Sec key={s.id} s={s} ans={ans} setAns={setAns} open={openId===s.id} errs={errs} toggle={()=>setOpenId(openId===s.id?null:s.id)}/>)}
+              </div>
+              <button onClick={handleSubmit} style={{width:"100%",background:`linear-gradient(135deg,${O},#FF6030)`,color:"#fff",border:"none",borderRadius:13,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 20px ${O}44`}}>
+                Enviar mapeamento <ChevronRight size={18}/>
+              </button>
             </>
           )}
         </div>
