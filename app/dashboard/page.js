@@ -4,7 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   Users, BarChart3, Target, Settings2, Activity, BadgeCheck,
   Search, ArrowLeft, Shield, AlertCircle, Trophy, Sparkles,
-  TrendingUp, DollarSign, ChevronRight, Building2
+  TrendingUp, ChevronRight, UserPlus, Pencil, Trash2, Check, X,
+  UserCheck, UserX, Mail
 } from "lucide-react";
 import { analyze, analyzeICP, nivelFn, fmtR, pm } from "@/lib/analysis";
 
@@ -23,6 +24,8 @@ const B="#2196F3",BL="#E3F2FD";
 const T="#1A1A1A",T2="#6B6B6B",T3="#999";
 const BD="#E8E8E8",BG="#F4F5F7",C="#FFFFFF",DK="#1A1A1A";
 
+const ROLES = ["Gestor","Consultor","CS","SDR","Analista","Financeiro","Outro"];
+
 function Bar({ pct, color, height=8 }) {
   return (
     <div style={{height,background:"#EEE",borderRadius:10,overflow:"hidden"}}>
@@ -31,7 +34,196 @@ function Bar({ pct, color, height=8 }) {
   );
 }
 
-// ─── LISTA DE CLIENTES ─────────────────────────────────────────────────
+// ─── ABA EQUIPE ────────────────────────────────────────────────────────
+function EquipeTab() {
+  const [membros,    setMembros]    = useState([]);
+  const [loading,   setLoading]    = useState(true);
+  const [showForm,  setShowForm]   = useState(false);
+  const [editId,    setEditId]     = useState(null);
+  const [saving,    setSaving]     = useState(false);
+  const [confirmDel,setConfirmDel] = useState(null);
+
+  const emptyForm = { nome:"", email:"", role:"Consultor" };
+  const [form, setForm] = useState(emptyForm);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from("membros").select("*").order("created_at", { ascending: true });
+    setMembros(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  function openNew() { setForm(emptyForm); setEditId(null); setShowForm(true); }
+  function openEdit(m) { setForm({ nome: m.nome, email: m.email||"", role: m.role }); setEditId(m.id); setShowForm(true); }
+  function cancelForm() { setShowForm(false); setEditId(null); setForm(emptyForm); }
+
+  async function handleSave() {
+    if (!form.nome.trim()) return;
+    setSaving(true);
+    if (editId) {
+      await supabase.from("membros").update({ nome: form.nome.trim(), email: form.email.trim()||null, role: form.role }).eq("id", editId);
+    } else {
+      await supabase.from("membros").insert({ nome: form.nome.trim(), email: form.email.trim()||null, role: form.role, ativo: true });
+    }
+    setSaving(false);
+    cancelForm();
+    load();
+  }
+
+  async function toggleAtivo(m) {
+    await supabase.from("membros").update({ ativo: !m.ativo }).eq("id", m.id);
+    setMembros(prev => prev.map(x => x.id===m.id ? {...x, ativo: !x.ativo} : x));
+  }
+
+  async function handleDelete(id) {
+    await supabase.from("membros").delete().eq("id", id);
+    setConfirmDel(null);
+    load();
+  }
+
+  const ativos   = membros.filter(m => m.ativo);
+  const inativos = membros.filter(m => !m.ativo);
+
+  const roleCor = { Gestor:O, Consultor:B, CS:G, SDR:"#9C27B0", Analista:Y, Financeiro:"#00BCD4", Outro:T3 };
+
+  function MemberCard({ m }) {
+    const cor = roleCor[m.role] || T3;
+    return (
+      <div style={{background:C,borderRadius:14,padding:"14px 18px",border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:14,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+        <div style={{width:40,height:40,borderRadius:10,background:`${cor}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:cor,flexShrink:0}}>
+          {m.nome[0].toUpperCase()}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            <span style={{fontSize:14,fontWeight:700,color:m.ativo?T:T3}}>{m.nome}</span>
+            <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:`${cor}18`,color:cor}}>{m.role}</span>
+            {!m.ativo && <span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:RL,color:R}}>Inativo</span>}
+          </div>
+          {m.email && (
+            <div style={{fontSize:12,color:T3,marginTop:2,display:"flex",alignItems:"center",gap:4}}>
+              <Mail size={10}/>{m.email}
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex",gap:6,flexShrink:0}}>
+          <button onClick={()=>toggleAtivo(m)} title={m.ativo?"Desativar":"Ativar"}
+            style={{padding:"6px 10px",borderRadius:8,border:`1px solid ${BD}`,background:C,cursor:"pointer",display:"flex",alignItems:"center",gap:4,fontSize:12,color:m.ativo?R:G}}>
+            {m.ativo ? <UserX size={13}/> : <UserCheck size={13}/>}
+            {m.ativo ? "Desativar" : "Ativar"}
+          </button>
+          <button onClick={()=>openEdit(m)} title="Editar"
+            style={{padding:"6px 8px",borderRadius:8,border:`1px solid ${BD}`,background:C,cursor:"pointer",color:T2}}>
+            <Pencil size={13}/>
+          </button>
+          {confirmDel===m.id ? (
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              <span style={{fontSize:12,color:R,fontWeight:600}}>Confirmar?</span>
+              <button onClick={()=>handleDelete(m.id)} style={{padding:"4px 8px",borderRadius:6,border:"none",background:R,color:"#fff",cursor:"pointer",fontSize:11,fontWeight:700}}>Sim</button>
+              <button onClick={()=>setConfirmDel(null)} style={{padding:"4px 8px",borderRadius:6,border:`1px solid ${BD}`,background:C,cursor:"pointer",fontSize:11}}>Não</button>
+            </div>
+          ) : (
+            <button onClick={()=>setConfirmDel(m.id)} title="Remover"
+              style={{padding:"6px 8px",borderRadius:8,border:`1px solid ${BD}`,background:C,cursor:"pointer",color:R}}>
+              <Trash2 size={13}/>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:12}}>
+        <div>
+          <h2 style={{fontSize:17,fontWeight:800,color:T,margin:0}}>{membros.length} {membros.length===1?"membro":"membros"}</h2>
+          <div style={{fontSize:12,color:T3,marginTop:2}}>{ativos.length} ativos · {inativos.length} inativos</div>
+        </div>
+        <button onClick={openNew}
+          style={{padding:"9px 18px",borderRadius:10,border:"none",background:O,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:700,display:"flex",alignItems:"center",gap:6,boxShadow:`0 4px 12px ${O}44`}}>
+          <UserPlus size={14}/>Adicionar membro
+        </button>
+      </div>
+
+      {/* Formulário inline */}
+      {showForm && (
+        <div style={{background:C,borderRadius:16,padding:"20px 22px",border:`1.5px solid ${OB}`,marginBottom:20,boxShadow:`0 4px 20px ${O}18`}}>
+          <div style={{fontSize:13,fontWeight:700,color:T,marginBottom:16}}>{editId?"Editar membro":"Novo membro"}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr auto",gap:10,alignItems:"end"}}>
+            <div>
+              <div style={{fontSize:11,color:T3,fontWeight:600,marginBottom:4}}>Nome *</div>
+              <input value={form.nome} onChange={e=>setForm(f=>({...f,nome:e.target.value}))}
+                placeholder="Nome completo"
+                style={{width:"100%",boxSizing:"border-box",padding:"10px 12px",borderRadius:9,border:`1.5px solid ${BD}`,fontSize:13,fontFamily:"inherit",color:T,outline:"none"}}/>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:T3,fontWeight:600,marginBottom:4}}>E-mail</div>
+              <input value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))}
+                placeholder="email@exemplo.com"
+                style={{width:"100%",boxSizing:"border-box",padding:"10px 12px",borderRadius:9,border:`1.5px solid ${BD}`,fontSize:13,fontFamily:"inherit",color:T,outline:"none"}}/>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:T3,fontWeight:600,marginBottom:4}}>Cargo</div>
+              <select value={form.role} onChange={e=>setForm(f=>({...f,role:e.target.value}))}
+                style={{padding:"10px 12px",borderRadius:9,border:`1.5px solid ${BD}`,fontSize:13,fontFamily:"inherit",color:T,outline:"none",background:C,cursor:"pointer"}}>
+                {ROLES.map(r=><option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:14,justifyContent:"flex-end"}}>
+            <button onClick={cancelForm}
+              style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${BD}`,background:C,cursor:"pointer",fontSize:13,fontFamily:"inherit",color:T2,display:"flex",alignItems:"center",gap:5}}>
+              <X size={13}/>Cancelar
+            </button>
+            <button onClick={handleSave} disabled={saving||!form.nome.trim()}
+              style={{padding:"8px 18px",borderRadius:8,border:"none",background:form.nome.trim()?O:"#CCC",color:"#fff",cursor:form.nome.trim()?"pointer":"not-allowed",fontSize:13,fontFamily:"inherit",fontWeight:700,display:"flex",alignItems:"center",gap:5}}>
+              <Check size={13}/>{saving?"Salvando...":"Salvar"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div style={{textAlign:"center",padding:"48px 0",color:T3,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <Activity size={15} color={T3} style={{animation:"spin 1s linear infinite"}}/>Carregando equipe...
+        </div>
+      )}
+
+      {/* Membros ativos */}
+      {!loading && ativos.length > 0 && (
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:10}}>ATIVOS</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {ativos.map(m=><MemberCard key={m.id} m={m}/>)}
+          </div>
+        </div>
+      )}
+
+      {/* Membros inativos */}
+      {!loading && inativos.length > 0 && (
+        <div>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T3,marginBottom:10}}>INATIVOS</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {inativos.map(m=><MemberCard key={m.id} m={m}/>)}
+          </div>
+        </div>
+      )}
+
+      {!loading && membros.length===0 && (
+        <div style={{textAlign:"center",padding:"60px 0",color:T3}}>
+          <Users size={32} color={BD} style={{marginBottom:12}}/>
+          <div style={{fontSize:14,fontWeight:600}}>Nenhum membro cadastrado</div>
+          <div style={{fontSize:12,marginTop:4}}>Clique em "Adicionar membro" para começar</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DASHBOARD PRINCIPAL ───────────────────────────────────────────────
 function DashboardMain({ clients, loading }) {
   const [tab,    setTab]    = useState("clientes");
   const [search, setSearch] = useState("");
@@ -58,6 +250,7 @@ function DashboardMain({ clients, loading }) {
   const TABS = [
     { id:"clientes",  label:"Clientes",  Icon:Users },
     { id:"analytics", label:"Analytics", Icon:BarChart3 },
+    { id:"equipe",    label:"Equipe",    Icon:UserCheck },
   ];
   const tabBtn = (t) => ({
     padding:"7px 16px", borderRadius:8, border:"none", cursor:"pointer",
@@ -90,8 +283,8 @@ function DashboardMain({ clients, loading }) {
 
       <div style={{maxWidth:960,margin:"0 auto",padding:"28px 24px 80px"}}>
 
-        {/* STATS */}
-        {stats && (
+        {/* STATS — só nas abas de clientes e analytics */}
+        {stats && tab !== "equipe" && (
           <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:28}}>
             {[
               {label:"Total Leads",    val:clients.length,        color:T,  Icon:Users,      bg:"#F0F0F2"},
@@ -183,7 +376,6 @@ function DashboardMain({ clients, loading }) {
         {/* ── TAB: ANALYTICS ─────────────────────────────────────────── */}
         {tab==="analytics" && stats && (
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
-            {/* Distribuição por produto */}
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>DISTRIBUIÇÃO POR PRODUTO</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
@@ -201,7 +393,6 @@ function DashboardMain({ clients, loading }) {
               </div>
             </div>
 
-            {/* Saúde média por área */}
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>SAÚDE MÉDIA POR ÁREA</div>
               {[
@@ -227,7 +418,6 @@ function DashboardMain({ clients, loading }) {
               })}
             </div>
 
-            {/* Top 5 por ICP */}
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:14,display:"flex",alignItems:"center",gap:6}}>
                 <Trophy size={12} color={Y}/>TOP LEADS POR ICP SCORE
@@ -257,6 +447,10 @@ function DashboardMain({ clients, loading }) {
             </div>
           </div>
         )}
+
+        {/* ── TAB: EQUIPE ────────────────────────────────────────────── */}
+        {tab==="equipe" && <EquipeTab/>}
+
       </div>
     </div>
   );
@@ -270,7 +464,6 @@ export default function DashboardPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Persiste auth na sessão
   useEffect(() => {
     if (typeof window !== "undefined" && sessionStorage.getItem("axis-authed") === "1") {
       setAuthed(true);
@@ -280,30 +473,26 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        // 1. Buscar todos os clientes
         const { data: clientesData, error: cErr } = await supabase
           .from("clientes")
           .select("id, created_at, nome_clinica, responsavel, cidade, whatsapp, meta")
           .order("created_at", { ascending: false });
         if (cErr || !clientesData) { setLoading(false); return; }
 
-        // 2. Buscar o diagnóstico mais recente de cada cliente
         const { data: diagsData } = await supabase
           .from("diagnosticos")
           .select("id, cliente_id, created_at, data, periodo, versao")
           .order("created_at", { ascending: false });
 
-        // 3. Agrupar diagnósticos por cliente_id
         const diagsByCliente = {};
         (diagsData || []).forEach(d => {
           if (!diagsByCliente[d.cliente_id]) diagsByCliente[d.cliente_id] = [];
           diagsByCliente[d.cliente_id].push(d);
         });
 
-        // 4. Montar objeto flat por cliente
         const merged = clientesData.map(c => {
           const diags = diagsByCliente[c.id] || [];
-          const latest = diags[0]; // já vem ordenado desc
+          const latest = diags[0];
           return {
             _clienteId: c.id,
             _created_at: c.created_at,
