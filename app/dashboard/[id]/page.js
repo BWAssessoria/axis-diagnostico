@@ -138,7 +138,9 @@ export default function ClientePage() {
   const id     = params.id;
   const printRef = useRef(null);
 
-  const [data,       setData]       = useState(null);
+  const [cliente,    setCliente]    = useState(null);
+  const [diagnosticos, setDiagnosticos] = useState([]);
+  const [diagIdx,    setDiagIdx]    = useState(0); // índice do diagnóstico selecionado
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [tab,        setTab]        = useState("visao");
@@ -149,23 +151,30 @@ export default function ClientePage() {
   const [saving,     setSaving]     = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  // data = dados do diagnóstico selecionado (shortcut)
+  const data = diagnosticos[diagIdx]?.data || null;
+
   useEffect(() => {
     if (!id) return;
     (async () => {
       try {
-        const { data: rows, error: err } = await supabase
-          .from("mapeamentos").select("data").eq("id", id).single();
-        if (err || !rows) setError("Cliente não encontrado.");
-        else {
-          setData(rows.data);
-          setEditFields({
-            plano_contratado:  rows.data._plano_contratado  || "",
-            plano_recomendado: rows.data._plano_recomendado || "",
-            meta_interna:      rows.data._meta_interna      || "",
-            notas_estrategicas:rows.data._notas_estrategicas|| "",
-            proxima_sessao:    rows.data._proxima_sessao    || "",
-          });
-        }
+        // Buscar cliente
+        const { data: cRow, error: cErr } = await supabase
+          .from("clientes").select("*").eq("id", id).single();
+        if (cErr || !cRow) { setError("Cliente não encontrado."); setLoading(false); return; }
+        setCliente(cRow);
+        setEditFields({
+          plano_contratado:   cRow.meta?.plano_contratado   || "",
+          plano_recomendado:  cRow.meta?.plano_recomendado  || "",
+          meta_interna:       cRow.meta?.meta_interna       || "",
+          notas_estrategicas: cRow.meta?.notas_estrategicas || "",
+          proxima_sessao:     cRow.meta?.proxima_sessao     || "",
+        });
+        // Buscar todos os diagnósticos (mais recente primeiro)
+        const { data: diags, error: dErr } = await supabase
+          .from("diagnosticos").select("*").eq("cliente_id", id)
+          .order("created_at", { ascending: false });
+        if (!dErr && diags) setDiagnosticos(diags);
       } catch { setError("Erro ao carregar dados."); }
       setLoading(false);
     })();
@@ -179,15 +188,15 @@ export default function ClientePage() {
   // ── HANDLERS ──────────────────────────────────────────────────────
   async function handleDelete() {
     setDeleting(true);
-    await supabase.from("mapeamentos").delete().eq("id", id);
+    await supabase.from("clientes").delete().eq("id", id); // CASCADE deleta diagnosticos
     router.push("/dashboard");
   }
 
   async function handleSaveEdit() {
     setSaving(true);
-    const updated = { ...data, ...editFields };
-    await supabase.from("mapeamentos").update({ data: updated }).eq("id", id);
-    setData(updated);
+    const newMeta = { ...cliente.meta, ...editFields };
+    await supabase.from("clientes").update({ meta: newMeta }).eq("id", id);
+    setCliente(prev => ({ ...prev, meta: newMeta }));
     setSaving(false);
     setShowEdit(false);
   }
@@ -230,7 +239,7 @@ export default function ClientePage() {
     </div>
   );
 
-  if (error || !data) return (
+  if (error || (!loading && !cliente)) return (
     <div style={{minHeight:"100vh",background:BG,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center",padding:40}}>
         <AlertCircle size={40} color={R} style={{marginBottom:16}}/>
@@ -242,9 +251,20 @@ export default function ClientePage() {
     </div>
   );
 
+  if (!data) return (
+    <div style={{minHeight:"100vh",background:BG,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{width:40,height:40,borderRadius:"50%",border:`3px solid ${OB}`,borderTopColor:O,animation:"spin 0.8s linear infinite",margin:"0 auto 16px"}}/>
+        <p style={{color:T3,fontSize:13}}>Carregando diagnóstico...</p>
+      </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
   const { scores, maxS, saude } = analysis;
   const saudeCor = nivelFn(saude).color;
-  const dt = data._ts ? new Date(data._ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"}) : "—";
+  const diagAtual = diagnosticos[diagIdx];
+  const dt = diagAtual?.created_at ? new Date(diagAtual.created_at).toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"}) : "—";
   const pac = getPacRecomendacoes(icp.produto, icp.plano, data);
 
   const TABS = [
@@ -308,28 +328,43 @@ export default function ClientePage() {
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:20,flexWrap:"wrap"}}>
             <div style={{flex:1,minWidth:200}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T3,marginBottom:6,textTransform:"uppercase"}}>Prontuário do Cliente</div>
-              <div style={{fontSize:28,fontWeight:900,color:T,marginBottom:8,letterSpacing:-0.5}}>{data.nome_clinica||"Clínica"}</div>
+              <div style={{fontSize:28,fontWeight:900,color:T,marginBottom:8,letterSpacing:-0.5}}>{cliente.nome_clinica||"Clínica"}</div>
               <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",marginBottom:10}}>
-                {data.nome        && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><Users size={13} color={T3}/>{data.nome}</span>}
-                {data.cidade_estado&&<span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><MapPin size={13} color={T3}/>{data.cidade_estado}</span>}
-                {data.whatsapp    && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><Phone size={13} color={T3}/>{data.whatsapp}</span>}
+                {cliente.responsavel  && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><Users size={13} color={T3}/>{cliente.responsavel}</span>}
+                {cliente.cidade       && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><MapPin size={13} color={T3}/>{cliente.cidade}</span>}
+                {cliente.whatsapp     && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><Phone size={13} color={T3}/>{cliente.whatsapp}</span>}
               </div>
-              {/* Campos estratégicos editáveis */}
+              {/* Campos estratégicos */}
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {data._plano_contratado && (
+                {cliente.meta?.plano_contratado && (
                   <span style={{fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:20,background:OL,color:O}}>
-                    Contratado: {data._plano_contratado}
+                    Contratado: {cliente.meta.plano_contratado}
                   </span>
                 )}
-                {data._proxima_sessao && (
+                {cliente.meta?.proxima_sessao && (
                   <span style={{fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,background:BL,color:B}}>
-                    Próxima sessão: {data._proxima_sessao}
+                    Próxima sessão: {cliente.meta.proxima_sessao}
                   </span>
                 )}
               </div>
-              {data._notas_estrategicas && (
+              {cliente.meta?.notas_estrategicas && (
                 <div style={{marginTop:10,padding:"10px 14px",borderRadius:10,background:"#FFFBF0",border:"1px solid #FFE082",fontSize:12,color:"#8D6E00",lineHeight:1.6}}>
-                  <b>Notas:</b> {data._notas_estrategicas}
+                  <b>Notas:</b> {cliente.meta.notas_estrategicas}
+                </div>
+              )}
+              {/* Seletor de histórico de diagnósticos */}
+              {diagnosticos.length > 1 && (
+                <div style={{marginTop:14,padding:"12px 14px",borderRadius:12,background:BG,border:`1px solid ${BD}`}}>
+                  <div style={{fontSize:10,fontWeight:700,color:T3,letterSpacing:1,marginBottom:8}}>HISTÓRICO DE DIAGNÓSTICOS ({diagnosticos.length})</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {diagnosticos.map((d,i) => (
+                      <button key={d.id} onClick={()=>setDiagIdx(i)}
+                        style={{padding:"5px 12px",borderRadius:8,border:`1.5px solid ${i===diagIdx?O:BD}`,background:i===diagIdx?OL:C,color:i===diagIdx?O:T2,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
+                        {d.periodo==="inicial"?"Diagnóstico Inicial":d.periodo} · {new Date(d.created_at).toLocaleDateString("pt-BR",{month:"short",year:"numeric"})}
+                        {i===0&&<span style={{marginLeft:4,fontSize:9,background:O,color:"#fff",borderRadius:4,padding:"1px 5px"}}>Atual</span>}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -760,8 +795,8 @@ export default function ClientePage() {
               </div>
             </div>
             <div style={{padding:"14px 16px",borderRadius:12,background:RL,marginBottom:20}}>
-              <div style={{fontSize:13,fontWeight:700,color:R}}>{data.nome_clinica||"Cliente"}</div>
-              <div style={{fontSize:12,color:R,opacity:0.8}}>Todos os dados do mapeamento serão removidos permanentemente.</div>
+              <div style={{fontSize:13,fontWeight:700,color:R}}>{cliente?.nome_clinica||"Cliente"}</div>
+              <div style={{fontSize:12,color:R,opacity:0.8}}>Todos os diagnósticos do prontuário serão removidos permanentemente.</div>
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowDelete(false)}

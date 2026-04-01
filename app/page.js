@@ -797,9 +797,16 @@ export default function App(){
     const miss=allQs.filter(q=>q.req).map(q=>q.id).filter(id=>!ans[id]||String(ans[id]).trim()==="");
     if(miss.length>0){setErrs(miss);for(const s of sections){if(s.qs.some(q=>miss.includes(q.id))){setOpenId(s.id);break;}}return;}
     setErrs([]);
-    const entry={...ans,_ts:new Date().toISOString(),_id:Date.now().toString()};
-    const {error}=await supabase.from("mapeamentos").insert([{id:entry._id,data:entry}]);
-    if(error){alert("Erro ao enviar: "+error.message);return;}
+    const entry={...ans,_ts:new Date().toISOString()};
+    // 1. Criar cliente
+    const {data:novoCliente,error:errC}=await supabase.from("clientes")
+      .insert({nome_clinica:ans.nome_clinica,responsavel:ans.nome,cidade:ans.cidade_estado,whatsapp:ans.whatsapp})
+      .select("id").single();
+    if(errC){alert("Erro ao criar cliente: "+errC.message);return;}
+    // 2. Criar diagnóstico inicial
+    const {error:errD}=await supabase.from("diagnosticos")
+      .insert({cliente_id:novoCliente.id,data:entry,periodo:"inicial",versao:1});
+    if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
     setSubmitted(true);
   };
 

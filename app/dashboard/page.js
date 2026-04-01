@@ -40,7 +40,7 @@ function DashboardMain({ clients }) {
     if (!search) return true;
     const q = search.toLowerCase();
     return (c.nome_clinica||"").toLowerCase().includes(q)
-        || (c.nome||"").toLowerCase().includes(q)
+        || (c.responsavel||"").toLowerCase().includes(q)
         || (c.cidade_estado||"").toLowerCase().includes(q);
   }), [clients, search]);
 
@@ -128,40 +128,38 @@ function DashboardMain({ clients }) {
             </div>
 
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[...filtered].reverse().map(c => {
+              {filtered.map(c => {
                 const res   = analyze(c);
                 const total = Object.values(res.scores).reduce((a,b)=>a+b,0);
                 const maxT  = Object.values(res.maxS).reduce((a,b)=>a+b,0);
                 const saude = Math.round(total/maxT*100);
                 const nv    = nivelFn(saude);
                 const icp   = analyzeICP(c);
-                const dt    = c._ts ? new Date(c._ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "—";
+                const dt    = c._created_at ? new Date(c._created_at).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "—";
+                const planoContratado = c.meta_info?.plano_contratado;
 
                 return (
-                  <a key={c._id} href={`/dashboard/${c._id}`}
+                  <a key={c._clienteId} href={`/dashboard/${c._clienteId}`}
                     style={{background:C,borderRadius:14,padding:"16px 22px",border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:16,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",transition:"all 0.2s",textDecoration:"none",cursor:"pointer"}}
                     onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 16px rgba(0,0,0,0.09)";e.currentTarget.style.borderColor=OB;}}
                     onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.04)";e.currentTarget.style.borderColor=BD;}}>
-                    {/* Avatar */}
                     <div style={{width:42,height:42,borderRadius:11,background:OL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:O,flexShrink:0}}>
                       {(c.nome_clinica||"?")[0].toUpperCase()}
                     </div>
-                    {/* Info */}
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                         <span style={{fontSize:14,fontWeight:700,color:T}}>{c.nome_clinica}</span>
-                        <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:nv.bg,color:nv.color}}>
-                          Saúde {saude}%
-                        </span>
+                        <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:nv.bg,color:nv.color}}>Saúde {saude}%</span>
                         <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:`${icp.prodCor}18`,color:icp.prodCor}}>
                           ICP {icp.icpPct}%{icp.plano?` · ${icp.plano}`:""}
                         </span>
+                        {planoContratado && <span style={{fontSize:11,fontWeight:600,padding:"2px 9px",borderRadius:20,background:OL,color:O}}>{planoContratado}</span>}
+                        {c._diagCount > 1 && <span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:BL,color:B}}>{c._diagCount} diagnósticos</span>}
                       </div>
                       <div style={{fontSize:12,color:T3,marginTop:3}}>
-                        {c.nome}{c.cidade_estado?` · ${c.cidade_estado}`:""}
+                        {c.responsavel}{c.cidade_estado?` · ${c.cidade_estado}`:""}
                       </div>
                     </div>
-                    {/* Financeiro */}
                     <div style={{flexShrink:0,textAlign:"right"}}>
                       <div style={{fontSize:13,fontWeight:700,color:G}}>{c.fat_atual||"—"}</div>
                       <div style={{fontSize:11,color:T3,marginTop:2}}>{icp.produto}{icp.plano?` ${icp.plano}`:""}</div>
@@ -181,12 +179,11 @@ function DashboardMain({ clients }) {
             {/* Distribuição por produto */}
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>DISTRIBUIÇÃO POR PRODUTO</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
                 {[
-                  {label:"Implementação", color:O,         count:clients.filter(c=>analyzeICP(c).produto==="Implementação").length},
-                  {label:"Starter",       color:G,         count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Starter";}).length},
-                  {label:"Growth",        color:B,         count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Growth";}).length},
-                  {label:"Pro",           color:"#9C27B0", count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Pro";}).length},
+                  {label:"Implementação", color:O, count:clients.filter(c=>analyzeICP(c).produto==="Implementação").length},
+                  {label:"Starter",       color:G, count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Starter";}).length},
+                  {label:"Scale",         color:B, count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Scale";}).length},
                 ].map(p => (
                   <div key={p.label} style={{padding:"16px",borderRadius:12,background:BG,border:`1.5px solid ${p.color}33`,textAlign:"center"}}>
                     <div style={{fontSize:28,fontWeight:900,color:p.color}}>{p.count}</div>
@@ -232,7 +229,7 @@ function DashboardMain({ clients }) {
                 {[...clients].sort((a,b)=>analyzeICP(b).icpPct-analyzeICP(a).icpPct).slice(0,5).map((c,i)=>{
                   const icp = analyzeICP(c);
                   return (
-                    <a key={c._id} href={`/dashboard/${c._id}`}
+                    <a key={c._clienteId} href={`/dashboard/${c._clienteId}`}
                       style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:10,background:BG,textDecoration:"none",border:`1px solid ${BD}`,transition:"border-color 0.2s"}}
                       onMouseEnter={e=>e.currentTarget.style.borderColor=OB}
                       onMouseLeave={e=>e.currentTarget.style.borderColor=BD}>
@@ -276,8 +273,30 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data, error } = await supabase.from("mapeamentos").select("*").order("created_at",{ascending:false});
-        if (!error && data) setClients(data.map(r => r.data));
+        const { data, error } = await supabase
+          .from("clientes")
+          .select("id, created_at, nome_clinica, responsavel, cidade, whatsapp, meta, diagnosticos(id, created_at, data, periodo, versao)")
+          .order("created_at", { ascending: false });
+        if (!error && data) {
+          // Para cada cliente, pegar o diagnóstico mais recente e montar objeto flat para análise
+          const merged = data.map(c => {
+            const diags = (c.diagnosticos || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+            const latest = diags[0];
+            return {
+              _clienteId: c.id,
+              _created_at: c.created_at,
+              _diagCount: diags.length,
+              _latestDiagId: latest?.id,
+              nome_clinica: c.nome_clinica,
+              responsavel: c.responsavel,
+              cidade_estado: c.cidade,
+              whatsapp: c.whatsapp,
+              meta_info: c.meta,
+              ...(latest?.data || {}),
+            };
+          });
+          setClients(merged);
+        }
       } catch(e) { setClients([]); }
       setLoading(false);
     })();
