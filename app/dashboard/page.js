@@ -32,7 +32,7 @@ function Bar({ pct, color, height=8 }) {
 }
 
 // ─── LISTA DE CLIENTES ─────────────────────────────────────────────────
-function DashboardMain({ clients }) {
+function DashboardMain({ clients, loading }) {
   const [tab,    setTab]    = useState("clientes");
   const [search, setSearch] = useState("");
 
@@ -69,6 +69,7 @@ function DashboardMain({ clients }) {
 
   return (
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit"}}>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       <div style={{height:3,background:`linear-gradient(90deg,${O},#FF7043,#FF9800)`}}/>
 
       {/* TOPBAR */}
@@ -115,7 +116,7 @@ function DashboardMain({ clients }) {
           <>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,gap:12,flexWrap:"wrap"}}>
               <h2 style={{fontSize:17,fontWeight:800,color:T,margin:0}}>
-                {filtered.length} {filtered.length===1?"cliente":"clientes"}
+                {loading ? "Carregando..." : `${filtered.length} ${filtered.length===1?"cliente":"clientes"}`}
               </h2>
               <div style={{position:"relative",width:280}}>
                 <Search size={14} color={T3} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
@@ -127,8 +128,14 @@ function DashboardMain({ clients }) {
               </div>
             </div>
 
+            {loading && (
+              <div style={{textAlign:"center",padding:"60px 0",color:T3,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                <Activity size={16} color={T3} style={{animation:"spin 1s linear infinite"}}/>Carregando clientes...
+              </div>
+            )}
+
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {filtered.map(c => {
+              {!loading && filtered.map(c => {
                 const res   = analyze(c);
                 const total = Object.values(res.scores).reduce((a,b)=>a+b,0);
                 const maxT  = Object.values(res.maxS).reduce((a,b)=>a+b,0);
@@ -325,7 +332,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (authed) return <DashboardMain clients={clients}/>;
+  if (authed) return <DashboardMain clients={clients} loading={loading}/>;
 
   return (
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>
