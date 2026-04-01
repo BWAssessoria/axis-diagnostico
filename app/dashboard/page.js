@@ -273,30 +273,44 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data, error } = await supabase
+        // 1. Buscar todos os clientes
+        const { data: clientesData, error: cErr } = await supabase
           .from("clientes")
-          .select("id, created_at, nome_clinica, responsavel, cidade, whatsapp, meta, diagnosticos(id, created_at, data, periodo, versao)")
+          .select("id, created_at, nome_clinica, responsavel, cidade, whatsapp, meta")
           .order("created_at", { ascending: false });
-        if (!error && data) {
-          // Para cada cliente, pegar o diagnóstico mais recente e montar objeto flat para análise
-          const merged = data.map(c => {
-            const diags = (c.diagnosticos || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-            const latest = diags[0];
-            return {
-              _clienteId: c.id,
-              _created_at: c.created_at,
-              _diagCount: diags.length,
-              _latestDiagId: latest?.id,
-              nome_clinica: c.nome_clinica,
-              responsavel: c.responsavel,
-              cidade_estado: c.cidade,
-              whatsapp: c.whatsapp,
-              meta_info: c.meta,
-              ...(latest?.data || {}),
-            };
-          });
-          setClients(merged);
-        }
+        if (cErr || !clientesData) { setLoading(false); return; }
+
+        // 2. Buscar o diagnóstico mais recente de cada cliente
+        const { data: diagsData } = await supabase
+          .from("diagnosticos")
+          .select("id, cliente_id, created_at, data, periodo, versao")
+          .order("created_at", { ascending: false });
+
+        // 3. Agrupar diagnósticos por cliente_id
+        const diagsByCliente = {};
+        (diagsData || []).forEach(d => {
+          if (!diagsByCliente[d.cliente_id]) diagsByCliente[d.cliente_id] = [];
+          diagsByCliente[d.cliente_id].push(d);
+        });
+
+        // 4. Montar objeto flat por cliente
+        const merged = clientesData.map(c => {
+          const diags = diagsByCliente[c.id] || [];
+          const latest = diags[0]; // já vem ordenado desc
+          return {
+            _clienteId: c.id,
+            _created_at: c.created_at,
+            _diagCount: diags.length,
+            _latestDiagId: latest?.id,
+            nome_clinica: c.nome_clinica,
+            responsavel: c.responsavel,
+            cidade_estado: c.cidade,
+            whatsapp: c.whatsapp,
+            meta_info: c.meta,
+            ...(latest?.data || {}),
+          };
+        });
+        setClients(merged);
       } catch(e) { setClients([]); }
       setLoading(false);
     })();
