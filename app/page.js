@@ -783,30 +783,15 @@ function Dashboard({data,onBack}){
 }
 
 export default function App(){
-  const [mode,setMode]=useState("form");
   const [ans,setAns]=useState({});
   const [openId,setOpenId]=useState(sections[0].id);
   const [saving,setSaving]=useState(false);
   const [submitted,setSubmitted]=useState(false);
   const [errs,setErrs]=useState([]);
-  const [clients,setClients]=useState([]);
-  const [selClient,setSelClient]=useState(null);
-  const [pass,setPass]=useState("");
-  const [passErr,setPassErr]=useState(false);
   const [welcomed,setWelcomed]=useState(false);
 
   const answered=sections.reduce((a,s)=>a+s.qs.filter(q=>ans[q.id]&&String(ans[q.id]).trim()!=="").length,0);
-
-  useEffect(()=>{
-    (async()=>{
-      try{
-        const {data,error}=await supabase.from("mapeamentos").select("*").order("created_at",{ascending:false});
-        if(!error&&data&&data.length>0) setClients(data.map(row=>row.data));
-        else setClients([DEMO_CLIENT]);
-      }catch(e){setClients([DEMO_CLIENT]);}
-    })();
-  },[]);
-
+  const pct=Math.round(answered/totalQ*100);
 
   const handleSubmit=async()=>{
     const miss=allQs.filter(q=>q.req).map(q=>q.id).filter(id=>!ans[id]||String(ans[id]).trim()==="");
@@ -817,92 +802,6 @@ export default function App(){
     if(error){alert("Erro ao enviar: "+error.message);return;}
     setSubmitted(true);
   };
-
-  const handleLogin=()=>{if(pass===TEAM_PASS){setMode("dash");setPassErr(false);}else setPassErr(true);};
-
-  if(mode==="dash"&&selClient) return(<Dashboard data={selClient} onBack={()=>setSelClient(null)}/>);
-
-  if(mode==="dash") return(
-    <div style={{minHeight:"100vh",background:"#F7F8FA",fontFamily:"inherit"}}>
-      <div style={{height:4,background:`linear-gradient(90deg,${O},#FF7043)`}}/>
-      {/* TOPBAR */}
-      <div style={{background:C,borderBottom:`1px solid ${BD}`,padding:"16px 32px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontWeight:800,fontSize:20,letterSpacing:1.5}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
-          <span style={{fontSize:12,fontWeight:600,color:T3,letterSpacing:1,textTransform:"uppercase"}}>· Admin</span>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <a href="/dashboard" style={{fontSize:13,fontWeight:600,color:O,padding:"7px 14px",borderRadius:9,border:`1.5px solid ${OB}`,background:OL,cursor:"pointer",textDecoration:"none",display:"flex",alignItems:"center",gap:6}}>
-            <LayoutDashboard size={14}/>Dashboard
-          </a>
-          <button onClick={()=>{setMode("form");setPass("");}} style={{cursor:"pointer",padding:"7px 12px",borderRadius:9,border:`1px solid ${BD}`,background:C,fontSize:13,color:T2,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
-            <LogOut size={14}/>Sair
-          </button>
-        </div>
-      </div>
-
-      <div style={{maxWidth:820,margin:"0 auto",padding:"32px 24px"}}>
-        {/* HEADER */}
-        <div style={{marginBottom:28}}>
-          <h2 style={{fontSize:24,fontWeight:800,color:T,margin:"0 0 4px"}}>Mapeamentos Recebidos</h2>
-          <p style={{color:T2,fontSize:14,margin:0}}>{clients.length} {clients.length===1?"mapeamento":"mapeamentos"} · clique para ver o diagnóstico completo</p>
-        </div>
-
-        {/* STATS ROW */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:28}}>
-          {[
-            {label:"Total de Leads",val:clients.length,icon:"📋",color:B,bg:BL},
-            {label:"Saúde Média",val:(()=>{if(!clients.length)return"—";const avg=clients.reduce((s,c)=>{const r=analyze(c);const t=Object.values(r.scores).reduce((a,b)=>a+b,0);const m=Object.values(r.maxS).reduce((a,b)=>a+b,0);return s+(t/m*100);},0)/clients.length;return Math.round(avg)+"%";})(),icon:"📊",color:G,bg:GL},
-            {label:"Leads este mês",val:(()=>{const now=new Date();return clients.filter(c=>{if(!c._ts)return false;const d=new Date(c._ts);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;})(),icon:"📅",color:O,bg:OL},
-          ].map(st=>(
-            <div key={st.label} style={{background:C,borderRadius:14,padding:"18px 20px",border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:16}}>
-              <div style={{width:44,height:44,borderRadius:12,background:st.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{st.icon}</div>
-              <div>
-                <div style={{fontSize:22,fontWeight:800,color:st.color}}>{st.val}</div>
-                <div style={{fontSize:12,color:T2,marginTop:1}}>{st.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* CLIENT LIST */}
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {[...clients].reverse().map(c=>{
-            const res=analyze(c);
-            const total=Object.values(res.scores).reduce((a,b)=>a+b,0);
-            const maxT=Object.values(res.maxS).reduce((a,b)=>a+b,0);
-            const saude=Math.round(total/maxT*100);
-            const nv=nivelFn(saude);
-            const dt=c._ts?new Date(c._ts).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"—";
-            return(
-              <div key={c._id} onClick={()=>setSelClient(c)} style={{background:C,borderRadius:14,padding:"18px 24px",border:`1px solid ${BD}`,cursor:"pointer",display:"flex",alignItems:"center",gap:20,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",transition:"box-shadow 0.2s,border-color 0.2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 16px rgba(0,0,0,0.1)";e.currentTarget.style.borderColor=OB;}}
-                onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.04)";e.currentTarget.style.borderColor=BD;}}>
-                {/* Avatar */}
-                <div style={{width:46,height:46,borderRadius:12,background:OL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:800,color:O,flexShrink:0}}>
-                  {(c.nome_clinica||"?")[0].toUpperCase()}
-                </div>
-                {/* Info */}
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                    <span style={{fontSize:16,fontWeight:700,color:T}}>{c.nome_clinica}</span>
-                    <span style={{fontSize:12,fontWeight:700,padding:"2px 10px",borderRadius:20,background:nv.bg,color:nv.color}}>{saude}% · {nv.label}</span>
-                  </div>
-                  <div style={{fontSize:13,color:T2,marginTop:3}}>{c.nome}{c.cidade_estado?` · ${c.cidade_estado}`:""}</div>
-                </div>
-                {/* Meta & Data */}
-                <div style={{textAlign:"right",flexShrink:0}}>
-                  <div style={{fontSize:13,fontWeight:700,color:G}}>{c.fat_atual||"—"}</div>
-                  <div style={{fontSize:11,color:T3,marginTop:2}}>{dt}</div>
-                </div>
-                <svg width={16} height={16} viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke={T3} strokeWidth={2} fill="none"/></svg>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
 
   if(submitted) return(
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -915,8 +814,6 @@ export default function App(){
     </div>
   );
 
-  const pct=Math.round(answered/totalQ*100);
-
   return(
     <div style={{minHeight:"100vh",background:"#F8F9FB",fontFamily:"inherit"}}>
       <div style={{height:3,background:`linear-gradient(90deg,${O},#FF7043,#FF9800)`}}/>
@@ -926,9 +823,9 @@ export default function App(){
         <div style={{maxWidth:640,margin:"0 auto"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:60}}>
             <div style={{display:"flex",alignItems:"center",gap:14}}>
-              <div style={{cursor:"pointer",display:"flex",alignItems:"center",gap:2}} onClick={()=>setMode("login")}>
+              <a href="/dashboard" style={{textDecoration:"none",display:"flex",alignItems:"center",gap:2}}>
                 <span style={{fontWeight:900,fontSize:22,letterSpacing:1}}><span style={{color:O}}>A</span><span style={{color:DK}}>XIS</span></span>
-              </div>
+              </a>
               <div style={{width:1,height:20,background:BD}}/>
               <span style={{color:T3,fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>360</span>
             </div>
@@ -945,24 +842,7 @@ export default function App(){
         </div>
       </div>
 
-      {mode==="login"?(
-        <div style={{maxWidth:380,margin:"80px auto 0",padding:"0 24px"}}>
-          <div style={{background:C,borderRadius:20,padding:"40px 36px",border:`1px solid ${BD}`,boxShadow:"0 8px 40px rgba(0,0,0,0.07)",textAlign:"center"}}>
-            <div style={{width:52,height:52,borderRadius:14,background:OL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
-              <Shield size={24} color={O}/>
-            </div>
-            <h2 style={{fontSize:20,fontWeight:800,color:T,margin:"0 0 6px"}}>Acesso Restrito</h2>
-            <p style={{fontSize:13,color:T3,margin:"0 0 24px"}}>Área exclusiva da equipe AXIS</p>
-            <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()} placeholder="Senha de acesso" style={{width:"100%",boxSizing:"border-box",padding:"13px 16px",marginBottom:10,borderRadius:12,border:`1.5px solid ${passErr?R:BD}`,background:"#FAFAFA",color:T,fontFamily:"inherit",fontSize:14,outline:"none"}}/>
-            <button onClick={handleLogin} style={{width:"100%",padding:"13px",background:O,color:"#fff",border:"none",borderRadius:12,cursor:"pointer",fontWeight:700,fontFamily:"inherit",fontSize:14,letterSpacing:0.3}}>Entrar</button>
-            <button onClick={()=>setMode("form")} style={{marginTop:12,background:"none",border:"none",color:T3,cursor:"pointer",fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6,margin:"12px auto 0"}}>
-              <ArrowLeft size={14}/> Voltar ao formulário
-            </button>
-            {passErr&&<p style={{color:R,fontSize:12,marginTop:12,display:"flex",alignItems:"center",justifyContent:"center",gap:4}}><AlertCircle size={12}/>Senha incorreta</p>}
-          </div>
-        </div>
-      ):(
-        <div style={{maxWidth:640,margin:"0 auto",padding:"20px 20px"}}>
+      <div style={{maxWidth:640,margin:"0 auto",padding:"20px 20px"}}>
           {!welcomed?(
             <div style={{marginTop:20}}>
               {/* Hero card */}
@@ -1005,7 +885,6 @@ export default function App(){
             </>
           )}
         </div>
-      )}
     </div>
   );
 }
