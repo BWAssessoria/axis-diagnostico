@@ -5,7 +5,7 @@ import {
   Users, BarChart3, Target, Settings2, Activity, BadgeCheck,
   Search, ArrowLeft, Shield, AlertCircle, Trophy, Sparkles,
   TrendingUp, ChevronRight, UserPlus, Pencil, Trash2, Check, X,
-  UserCheck, UserX, Mail
+  UserCheck, UserX, Mail, LogOut
 } from "lucide-react";
 import { analyze, analyzeICP, nivelFn, fmtR, pm } from "@/lib/analysis";
 
@@ -224,7 +224,7 @@ function EquipeTab() {
 }
 
 // ─── DASHBOARD PRINCIPAL ───────────────────────────────────────────────
-function DashboardMain({ clients, loading }) {
+function DashboardMain({ clients, loading, onLogout }) {
   const [tab,    setTab]    = useState("clientes");
   const [search, setSearch] = useState("");
 
@@ -276,9 +276,17 @@ function DashboardMain({ clients, loading }) {
         <div style={{display:"flex",gap:3,background:"#F0F0F2",borderRadius:10,padding:3}}>
           {TABS.map(t => <button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}><t.Icon size={14} strokeWidth={1.8}/>{t.label}</button>)}
         </div>
-        <a href="/" style={{fontSize:13,color:T2,textDecoration:"none",padding:"7px 14px",borderRadius:9,border:`1px solid ${BD}`,background:C,display:"flex",alignItems:"center",gap:6}}>
-          <ArrowLeft size={14}/>Voltar ao site
-        </a>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <a href="/" style={{fontSize:13,color:T2,textDecoration:"none",padding:"7px 14px",borderRadius:9,border:`1px solid ${BD}`,background:C,display:"flex",alignItems:"center",gap:6}}>
+            <ArrowLeft size={14}/>Voltar ao site
+          </a>
+          <button onClick={onLogout}
+            style={{fontSize:13,color:R,padding:"7px 14px",borderRadius:9,border:`1px solid ${RL}`,background:C,cursor:"pointer",fontFamily:"inherit",fontWeight:600,display:"flex",alignItems:"center",gap:6,transition:"all 0.2s"}}
+            onMouseEnter={e=>e.currentTarget.style.background=RL}
+            onMouseLeave={e=>e.currentTarget.style.background=C}>
+            <LogOut size={14}/>Sair
+          </button>
+        </div>
       </div>
 
       <div style={{maxWidth:960,margin:"0 auto",padding:"28px 24px 80px"}}>
@@ -521,7 +529,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (authed) return <DashboardMain clients={clients} loading={loading}/>;
+  const handleLogout = () => {
+    sessionStorage.removeItem("axis-authed");
+    setAuthed(false);
+    setPass("");
+  };
+
+  if (authed) return <DashboardMain clients={clients} loading={loading} onLogout={handleLogout}/>;
 
   return (
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>

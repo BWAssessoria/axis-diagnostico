@@ -150,6 +150,7 @@ export default function ClientePage() {
   const [editFields, setEditFields] = useState({});
   const [saving,     setSaving]     = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfMode,    setPdfMode]    = useState(false);
 
   // data = dados do diagnóstico selecionado (shortcut)
   const data = diagnosticos[diagIdx]?.data || null;
@@ -203,6 +204,9 @@ export default function ClientePage() {
 
   async function handlePDF() {
     setPdfLoading(true);
+    setPdfMode(true);
+    // Aguarda o DOM renderizar todas as abas
+    await new Promise(r => setTimeout(r, 500));
     try {
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
         import("html2canvas"),
@@ -223,8 +227,9 @@ export default function ClientePage() {
         pdf.addPage();
         pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, pos, imgW, imgH);
       }
-      pdf.save(`diagnostico-${(data.nome_clinica||"cliente").replace(/\s/g,"-").toLowerCase()}.pdf`);
+      pdf.save(`diagnostico-${(cliente.nome_clinica||"cliente").replace(/\s/g,"-").toLowerCase()}.pdf`);
     } finally {
+      setPdfMode(false);
       setPdfLoading(false);
     }
   }
@@ -404,12 +409,14 @@ export default function ClientePage() {
         </div>
 
         {/* TABS */}
-        <div style={{display:"flex",gap:3,marginBottom:16,background:C,borderRadius:12,padding:4,border:`1px solid ${BD}`,width:"fit-content",flexWrap:"wrap"}}>
-          {TABS.map(t => <button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}>{t.label}</button>)}
-        </div>
+        {!pdfMode && (
+          <div style={{display:"flex",gap:3,marginBottom:16,background:C,borderRadius:12,padding:4,border:`1px solid ${BD}`,width:"fit-content",flexWrap:"wrap"}}>
+            {TABS.map(t => <button key={t.id} onClick={()=>setTab(t.id)} style={tabBtn(t)}>{t.label}</button>)}
+          </div>
+        )}
 
         {/* ── TAB: VISÃO GERAL ─────────────────────────────────────── */}
-        {tab==="visao" && (
+        {(tab==="visao" || pdfMode) && (
           <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
             <div style={{background:C,borderRadius:20,padding:24,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>SCORES POR ÁREA</div>
@@ -464,8 +471,9 @@ export default function ClientePage() {
         )}
 
         {/* ── TAB: ICP & PRODUTO ───────────────────────────────────── */}
-        {tab==="icp" && (
+        {(tab==="icp" || pdfMode) && (
           <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
+          {pdfMode && <div style={{padding:"10px 0 6px",borderTop:`2px solid ${OB}`,marginTop:8}}><span style={{fontSize:11,fontWeight:800,letterSpacing:2,color:O}}>ICP &amp; PRODUTO</span></div>}
             <div style={{background:C,borderRadius:20,padding:28,border:`1.5px solid ${icp.prodCor}33`}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,flexWrap:"wrap",marginBottom:24}}>
                 <div>
@@ -533,8 +541,9 @@ export default function ClientePage() {
         )}
 
         {/* ── TAB: DIAGNÓSTICO CMO ─────────────────────────────────── */}
-        {tab==="diagnostico" && diag && cmo && (
+        {(tab==="diagnostico" || pdfMode) && diag && cmo && (
           <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn 0.3s ease"}}>
+          {pdfMode && <div style={{padding:"10px 0 6px",borderTop:`2px solid ${OB}`,marginTop:8}}><span style={{fontSize:11,fontWeight:800,letterSpacing:2,color:O}}>DIAGNÓSTICO CMO</span></div>}
 
             {/* CMO AGENT HEADER */}
             <div style={{background:"linear-gradient(135deg,#0A0A1A,#1A1A3E)",borderRadius:20,padding:28,border:"1px solid rgba(255,69,0,0.2)"}}>
@@ -758,8 +767,9 @@ export default function ClientePage() {
         )}
 
         {/* ── TAB: DADOS COMPLETOS ─────────────────────────────────── */}
-        {tab==="dados" && (
+        {(tab==="dados" || pdfMode) && (
           <div style={{display:"flex",flexDirection:"column",gap:12,animation:"fadeIn 0.3s ease"}}>
+          {pdfMode && <div style={{padding:"10px 0 6px",borderTop:`2px solid ${OB}`,marginTop:8}}><span style={{fontSize:11,fontWeight:800,letterSpacing:2,color:O}}>DADOS COMPLETOS</span></div>}
             {Object.entries(ALL_FIELDS).map(([sec,fields]) => {
               const filled = fields.filter(f => data[f] && String(data[f]).trim() !== "");
               if (!filled.length) return null;
