@@ -28,9 +28,14 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // Rotas públicas — acessíveis sem login
-  const publicRoutes = ['/login'];
-  if (publicRoutes.includes(pathname)) {
-    if (user) {
+  const isPublic =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname.startsWith('/dashboard');
+
+  if (isPublic) {
+    // Se já logado e tentar acessar /login, redireciona pro painel correto
+    if (pathname === '/login' && user) {
       const role = await getUserRole(supabase, user.id);
       const dest = role === 'admin' ? '/admin' : '/portal';
       return NextResponse.redirect(new URL(dest, request.url));
@@ -41,13 +46,6 @@ export async function middleware(request) {
   // Sem sessão → /login
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Raiz "/" redireciona para o painel correto (impede acesso ao legado)
-  if (pathname === '/') {
-    const role = await getUserRole(supabase, user.id);
-    const dest = role === 'admin' ? '/admin' : '/portal';
-    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   // Proteção de rotas por papel
