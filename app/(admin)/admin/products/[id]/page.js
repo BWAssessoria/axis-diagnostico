@@ -1,16 +1,15 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import ProductForm from './_product-form';
+import ProductDetailTabs from './_product-detail-tabs';
 
 export default async function ProductDetailPage({ params }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: product } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const [{ data: product }, { data: assets }] = await Promise.all([
+    supabase.from('products').select('*').eq('id', id).single(),
+    supabase.from('product_assets').select('*').eq('product_id', id).order('created_at', { ascending: false }),
+  ]);
 
   if (!product) notFound();
 
@@ -20,7 +19,7 @@ export default async function ProductDetailPage({ params }) {
         <h1 className="text-2xl font-bold text-foreground">Editar produto</h1>
         <p className="mt-1 text-sm text-muted-foreground">{product.name}</p>
       </div>
-      <ProductForm product={product} />
+      <ProductDetailTabs product={product} assets={assets ?? []} />
     </div>
   );
 }

@@ -111,6 +111,19 @@ create table metrics_monthly (
 );
 
 -- ============================================================
+-- ASSETS DE PRODUTO (Knowledge Hub — Metodologia)
+-- ============================================================
+create table product_assets (
+  id         uuid primary key default uuid_generate_v4(),
+  product_id uuid not null references products(id) on delete cascade,
+  file_name  text,
+  file_url   text not null,
+  file_type  text not null default 'pdf', -- 'pdf' | 'link'
+  label      text,
+  created_at timestamptz not null default now()
+);
+
+-- ============================================================
 -- ANÁLISES MANUAIS DA EQUIPE AXIS
 -- ============================================================
 create table analyses (
@@ -145,6 +158,8 @@ alter table diagnostics      enable row level security;
 alter table client_uploads   enable row level security;
 alter table metrics_monthly  enable row level security;
 alter table analyses         enable row level security;
+alter table plan_actions     enable row level security;
+alter table product_assets   enable row level security;
 alter table user_profiles    enable row level security;
 
 -- Helper: papel do usuário logado
@@ -185,9 +200,41 @@ create policy "analyses_portal" on analyses for select using (
   client_id = get_my_client_id() and visible_to_client = true
 );
 
+-- Ações do plano: admin escreve, cliente lê o próprio
+create policy "plan_actions_admin"  on plan_actions for all    using (get_my_role() = 'admin');
+create policy "plan_actions_portal" on plan_actions for select using (client_id = get_my_client_id());
+
+-- Assets de produto: somente admin
+create policy "product_assets_admin" on product_assets for all using (get_my_role() = 'admin');
+
 -- Perfis: cada um vê o próprio
 create policy "profiles_own" on user_profiles for select using (id = auth.uid());
 create policy "profiles_admin" on user_profiles for all using (get_my_role() = 'admin');
+
+-- ============================================================
+-- PILAR (ENUM para pilares estratégicos AXIS)
+-- ============================================================
+create type pilar_type as enum ('posicionamento', 'comercial', 'trafego', 'protocolo');
+
+-- ============================================================
+-- AÇÕES DO PLANO ESTRATÉGICO
+-- ============================================================
+create table plan_actions (
+  id          uuid primary key default uuid_generate_v4(),
+  client_id   uuid not null references clients(id) on delete cascade,
+  analysis_id uuid references analyses(id) on delete cascade,
+  action_text text not null,
+  phase       text,
+  position    integer not null default 0,
+  status      text not null default 'pendente'
+              check (status in ('pendente', 'em_andamento', 'concluida', 'bloqueada')),
+  pilar       pilar_type,
+  notes       text,
+  due_date    date,
+  assignee    text check (assignee in ('consultor', 'cliente', 'ambos')),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
 
 -- ============================================================
 -- LOGS DE USO (tokens / custo por geração de IA)

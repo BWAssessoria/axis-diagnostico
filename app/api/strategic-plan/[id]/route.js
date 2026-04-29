@@ -34,6 +34,7 @@ const FIELD_LABELS = {
   algo_mais: 'Observações adicionais',
 };
 
+// ── Product scope definitions ─────────────────────────────────────────────────
 function getProductScope(slug) {
   const scopes = {
     gps: {
@@ -67,15 +68,20 @@ Por que esse preço: [baseado em margem + valor percebido]
 Argumento de venda em consulta: "[como apresentar ao paciente sem falar em procedimento avulso]"
 
 ## 🗓️ Plano de Ação — 45 Dias
+Prefixe cada ação com o pilar entre colchetes: [posicionamento] [comercial] [protocolo]
+GPS NÃO usa [trafego] — este produto não inclui mídia paga.
+
 **Semana 1-2: [tema — ex: Estrutura Comercial]**
-- Ação concreta 1 (responsável: quem | prazo: quando)
-- Ação concreta 2
+- [comercial] Ação concreta 1 (responsável: quem | prazo: quando)
+- [protocolo] Ação concreta 2 (responsável: quem | prazo: quando)
 
 **Semana 3-4: [tema — ex: Posicionamento e Protocolos]**
-- ...
+- [posicionamento] ...
+- [protocolo] ...
 
 **Semana 5-6: [tema — ex: Ajustes e Consolidação]**
-- ...
+- [comercial] ...
+- [posicionamento] ...
 
 ## 📊 KPIs — Baseline e Metas 45 Dias
 | Indicador | Hoje (declarado) | Meta 45 dias | Benchmark do setor |
@@ -111,15 +117,19 @@ Meta central: leads qualificados chegando de forma previsível todo mês.`,
 - Hipótese 3: ...
 
 ## 🎯 Prioridades Estratégicas — Primeiros 90 Dias
+Prefixe cada ação com o pilar entre colchetes: [posicionamento] [comercial] [trafego]
+
 **Mês 1: Estruturação do Funil**
-- Ação 1 (responsável / prazo)
-- Ação 2
+- [comercial] Ação 1 (responsável / prazo)
+- [trafego] Ação 2 (responsável / prazo)
 
 **Mês 2: Operação e Otimização de Mídia**
-- ...
+- [trafego] ...
+- [posicionamento] ...
 
 **Mês 3: Escala e Ajuste de CAC**
-- ...
+- [trafego] ...
+- [comercial] ...
 
 ## 📊 KPIs — Baseline e Metas 90 Dias
 | Indicador | Hoje (declarado) | Meta Mês 1 | Meta Mês 3 | Benchmark |
@@ -157,7 +167,7 @@ Um paciente de protocolo vale 5–12x mais que um de procedimento avulso.`,
 - Hipótese 2: ...
 - Hipótese 3: ...
 
-## 🧪 Protocolos Sugeridos (2-3 propostas)
+## 🧪 Protocolos Sugeridos (2-3 propostas) — PRIORIDADE MÁXIMA
 Com base nos procedimentos e perfil do cliente:
 
 **[Nome proprietário — ex: "Protocolo Harmonia Premium"]**
@@ -167,15 +177,22 @@ Integração nas campanhas: [como anunciar o resultado, não o procedimento]
 Argumento de venda em consulta: "[como apresentar ao paciente]"
 
 ## 🎯 Plano de Ação — Primeiros 90 Dias
+Prefixe cada ação com o pilar entre colchetes: [protocolo] [trafego] [comercial] [posicionamento]
+Scale PRIORIZA [protocolo] — pelo menos 30% das ações devem ser deste pilar.
+
 **Mês 1: Onboarding Scale + Construção de Protocolos**
-- Ação 1 (responsável / prazo)
-- Ação 2
+- [protocolo] Ação 1 (responsável / prazo)
+- [comercial] Ação 2 (responsável / prazo)
+- [trafego] Ação 3 (responsável / prazo)
 
 **Mês 2: Integração de Protocolos nas Campanhas**
-- ...
+- [protocolo] ...
+- [trafego] ...
 
 **Mês 3: Escala e Otimização**
-- ...
+- [protocolo] ...
+- [trafego] ...
+- [comercial] ...
 
 ## 📚 AXIS Academy — Prioridades dos Primeiros 3 Meses
 - Mês 1: [tema mais urgente — ex: Treinamento comercial da secretária para script de protocolo]
@@ -198,14 +215,15 @@ Argumento de venda em consulta: "[como apresentar ao paciente]"
   };
 
   const normalized = slug?.toLowerCase().replace(/[^a-z]/g, '');
-  if (normalized?.includes('gps')) return scopes.gps;
+  if (normalized?.includes('gps'))     return scopes.gps;
   if (normalized?.includes('starter')) return scopes.starter;
-  if (normalized?.includes('scale')) return scopes.scale;
+  if (normalized?.includes('scale'))   return scopes.scale;
   return scopes.scale;
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function buildDiagnosticText(answers) {
-  const lines = [];
+  const lines  = [];
   const mapped = new Set(Object.keys(FIELD_LABELS));
   for (const [key, label] of Object.entries(FIELD_LABELS)) {
     if (answers[key] != null && answers[key] !== '' && !key.startsWith('_')) {
@@ -220,6 +238,36 @@ function buildDiagnosticText(answers) {
   return lines.join('\n');
 }
 
+function buildAssetsText(assets) {
+  if (!assets?.length) return '';
+  return assets.map((a) => {
+    const name = a.label || a.file_name || a.file_url;
+    const ref  = a.file_type === 'link' ? ` → ${a.file_url}` : ' (PDF de metodologia)';
+    return `- [${a.file_type.toUpperCase()}] ${name}${ref}`;
+  }).join('\n');
+}
+
+function buildProductRules(slug) {
+  const normalized = slug?.toLowerCase().replace(/[^a-z]/g, '');
+  if (normalized?.includes('gps')) {
+    return `## REGRA CRÍTICA — GPS
+Este cliente contratou o GPS, que NÃO inclui tráfego pago.
+- PROIBIDO sugerir ações com pilar [trafego] (Meta Ads, Google Ads, mídia paga).
+- Se o cliente mencionar interesse em tráfego, redirecione: "isso é possível com upgrade para PAE Starter".
+- Foque exclusivamente em: [posicionamento] (orgânico, GMN, Instagram), [comercial] (script, secretária) e [protocolo] (Método AXIS).`;
+  }
+  if (normalized?.includes('scale')) {
+    return `## REGRA CRÍTICA — Scale
+Este cliente contratou o PAE Scale — o nível máximo da AXIS.
+- O Método AXIS Protocol é o diferencial central deste produto. PRIORIZE [protocolo] em todas as seções.
+- Mínimo de 30% das ações do Plano de Ação devem ter pilar [protocolo].
+- Sempre sugira 2-3 protocolos de alto ticket com nome proprietário, composição e preço (R$4.500–R$12.000).
+- Um paciente de protocolo vale 5–12× um de procedimento avulso — comunique isso no plano.`;
+  }
+  return '';
+}
+
+// ── Main handler ──────────────────────────────────────────────────────────────
 export async function POST(request, { params }) {
   const { id } = await params;
 
@@ -235,18 +283,32 @@ export async function POST(request, { params }) {
     return new Response('ANTHROPIC_API_KEY não configurada.', { status: 500 });
   }
 
-  const [{ data: client }, { data: diagnostic }, { data: metrics }] = await Promise.all([
+  const [
+    { data: client },
+    { data: diagnostic },
+    { data: metrics },
+  ] = await Promise.all([
     supabase.from('clients').select('*, products(name, slug)').eq('id', id).single(),
-    supabase.from('diagnostics').select('*').eq('client_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('metrics_monthly').select('*').eq('client_id', id).order('year', { ascending: false }).order('month', { ascending: false }).limit(12),
+    supabase.from('diagnostics').select('*').eq('client_id', id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('metrics_monthly').select('*').eq('client_id', id)
+      .order('year', { ascending: false }).order('month', { ascending: false }).limit(12),
   ]);
 
-  if (!client) return new Response('Cliente não encontrado', { status: 404 });
+  if (!client)              return new Response('Cliente não encontrado', { status: 404 });
   if (!diagnostic?.answers) return new Response('Diagnóstico 360 não preenchido. Preencha antes de gerar o plano.', { status: 422 });
 
-  const productScope = getProductScope(client.products?.slug ?? client.products?.name ?? '');
+  // Fetch product_assets for Knowledge Hub context
+  const { data: productAssets } = client.product_id
+    ? await supabase.from('product_assets').select('*').eq('product_id', client.product_id)
+    : { data: null };
 
-  // Resumo de métricas do banco (últimos 3 meses)
+  const productScope  = getProductScope(client.products?.slug ?? client.products?.name ?? '');
+  const productSlug   = client.products?.slug ?? '';
+  const productRules  = buildProductRules(productSlug);
+  const assetsText    = buildAssetsText(productAssets);
+
+  // Últimos 3 meses de métricas reais
   let metricsText = '';
   if (metrics?.length) {
     const MONTHS = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -269,11 +331,14 @@ ${buildDiagnosticText(diagnostic.answers)}
 
 ${metricsText ? `## DADOS REAIS DO BANCO (PGM sincronizada)\n${metricsText}` : ''}
 
+${assetsText ? `## MATERIAIS DE METODOLOGIA DO PRODUTO (Knowledge Hub)\n> Use como referência de boas práticas e protocolos do produto.\n${assetsText}` : ''}
+
 ---
 
 ## SUA TAREFA
 Gere o Plano Estratégico Inicial para este cliente usando exatamente o formato abaixo.
 Seja específico, honesto e acionável. Use os dados do cliente — nunca invente.
+OBRIGATÓRIO: prefixe cada ação do Plano de Ação com o pilar correto entre colchetes: [posicionamento] [comercial] [trafego] [protocolo]
 
 ${productScope.planFormat}`;
 
@@ -288,6 +353,15 @@ Gerar um plano honesto, específico e acionável que identifique o gargalo centr
 - NÃO diga "Método AXIS Protocol" → DIGA "a clínica para de vender botox e começa a vender protocolo de R$9.800"
 - NÃO diga "Google Meu Negócio" → DIGA "autoridade local — você aparece antes do concorrente no mapa"
 
+## Pilar de cada ação (OBRIGATÓRIO)
+Toda ação na seção "Plano de Ação" DEVE começar com a tag do pilar entre colchetes:
+- [posicionamento] → marca, GMN, Instagram orgânico, conteúdo, autoridade local
+- [comercial]      → script WhatsApp, secretária, follow-up, CRM, conversão em consulta
+- [trafego]        → Meta Ads, Google Ads, mídia paga, campanhas (apenas PAE Starter e Scale)
+- [protocolo]      → Método AXIS Protocol, criação/nomeação de protocolos, pricing, treinamento de venda de protocolo
+
+${productRules}
+
 ## Benchmarks do setor
 - Conv. lead → agendamento: top 35–50% | média 20–35% | crítico <20%
 - Show rate: top 75–85% | média 60–75% | crítico <55%
@@ -296,11 +370,11 @@ Gerar um plano honesto, específico e acionável que identifique o gargalo centr
 - Ticket médio com protocolo: R$4.500–R$12.000 | sem protocolo: R$800–R$2.500
 - Crescimento mensal saudável: 8–15% em crescimento | 3–8% em fase madura
 
-## Casos reais AXIS (use como referência interna, não cite os nomes)
+## Casos reais AXIS (referência interna — não cite os nomes)
 - Cliente GPS (biomédica, R$28k→R$73k em 45 dias): mesmos 80 leads, ticket R$1.400→R$3.200 (+129%). Alavanca: protocolos + script de atendimento
 - Cliente Scale (HOF, R$85k→R$210k em 6 meses): ticket R$1.250→R$6.400 (+412%). Alavanca: Protocolo Beleza Mineira R$8.200 integrado nas campanhas
 
-## Regras
+## Regras gerais
 - Sempre em português brasileiro
 - Use dados exatos do cliente — nunca invente números
 - Identifique O gargalo principal, não uma lista genérica de problemas
@@ -309,19 +383,18 @@ Gerar um plano honesto, específico e acionável que identifique o gargalo centr
 - Nunca termine no meio de uma seção`;
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  const encoder = new TextEncoder();
-  let fullText = '';
+  const encoder   = new TextEncoder();
+  let   fullText  = '';
 
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        const MODEL = 'claude-sonnet-4-6';
+        const MODEL  = 'claude-sonnet-4-6';
         const stream = anthropic.messages.stream({
-          model: MODEL,
+          model:      MODEL,
           max_tokens: 4000,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: contextPrompt }],
+          system:     systemPrompt,
+          messages:   [{ role: 'user', content: contextPrompt }],
         });
 
         for await (const chunk of stream) {
@@ -334,15 +407,14 @@ Gerar um plano honesto, específico e acionável que identifique o gargalo centr
         const finalMsg = await stream.finalMessage();
         await logUsage(supabase, { clientId: id, type: 'strategic_plan', model: MODEL, usage: finalMsg.usage });
 
-        // Salva o plano gerado em analyses
-        const now = new Date();
+        const now   = new Date();
         const title = `Plano Estratégico — ${productScope.title} — ${now.toLocaleDateString('pt-BR')}`;
         await supabase.from('analyses').insert({
-          client_id: id,
+          client_id:         id,
           title,
-          content: fullText,
+          content:           fullText,
           visible_to_client: false,
-          author_id: user.id,
+          author_id:         user.id,
         });
       } catch (err) {
         controller.enqueue(encoder.encode(`\n\n[Erro ao gerar plano: ${err.message}]`));
