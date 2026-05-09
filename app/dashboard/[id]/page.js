@@ -8,7 +8,7 @@ import {
   Activity, TrendingUp, DollarSign, MapPin, Phone, Users,
   BadgeCheck, ChevronRight, Shield, Brain, Trash2, Edit3,
   Download, FileText, TrendingDown, Minus, X, Save, Info,
-  Lightbulb, AlertTriangle, PlusCircle
+  Lightbulb, AlertTriangle, PlusCircle, Star, UserCheck
 } from "lucide-react";
 import {
   analyze, analyzeICP, getPacRecomendacoes,
@@ -149,8 +149,9 @@ export default function ClientePage() {
   const [showEdit,   setShowEdit]   = useState(false);
   const [editFields, setEditFields] = useState({});
   const [saving,     setSaving]     = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfMode,    setPdfMode]    = useState(false);
+  const [pdfLoading,     setPdfLoading]     = useState(false);
+  const [pdfMode,        setPdfMode]        = useState(false);
+  const [planoHorizonte, setPlanoHorizonte] = useState("180");
 
   // data = dados do diagnóstico selecionado (shortcut)
   const data = diagnosticos[diagIdx]?.data || null;
@@ -164,12 +165,15 @@ export default function ClientePage() {
           .from("clientes").select("*").eq("id", id).single();
         if (cErr || !cRow) { setError("Cliente não encontrado."); setLoading(false); return; }
         setCliente(cRow);
+        setPlanoHorizonte(cRow.meta?.plano_horizonte || "180");
         setEditFields({
           plano_contratado:   cRow.meta?.plano_contratado   || "",
           plano_recomendado:  cRow.meta?.plano_recomendado  || "",
           meta_interna:       cRow.meta?.meta_interna       || "",
           notas_estrategicas: cRow.meta?.notas_estrategicas || "",
           proxima_sessao:     cRow.meta?.proxima_sessao     || "",
+          plano_horizonte:    cRow.meta?.plano_horizonte    || "180",
+          tipo_cliente:       cRow.meta?.tipo_cliente       || "cliente",
         });
         // Buscar todos os diagnósticos (mais recente primeiro)
         const { data: diags, error: dErr } = await supabase
@@ -198,6 +202,7 @@ export default function ClientePage() {
     const newMeta = { ...cliente.meta, ...editFields };
     await supabase.from("clientes").update({ meta: newMeta }).eq("id", id);
     setCliente(prev => ({ ...prev, meta: newMeta }));
+    setPlanoHorizonte(editFields.plano_horizonte || "180");
     setSaving(false);
     setShowEdit(false);
   }
@@ -338,7 +343,13 @@ export default function ClientePage() {
         <div style={{background:C,borderRadius:20,padding:"28px 32px",marginBottom:20,border:`1px solid ${BD}`,boxShadow:"0 2px 16px rgba(0,0,0,0.05)"}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:20,flexWrap:"wrap"}}>
             <div style={{flex:1,minWidth:200}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T3,marginBottom:6,textTransform:"uppercase"}}>Prontuário do Cliente</div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T3,textTransform:"uppercase"}}>Prontuário do Cliente</span>
+                {cliente.meta?.tipo_cliente==="embaixador"
+                  ? <span style={{display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:20,background:"#FFF8E1",color:"#FF9800"}}><Star size={10} fill="#FF9800" color="#FF9800"/>Embaixador</span>
+                  : <span style={{display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700,padding:"2px 10px",borderRadius:20,background:BL,color:B}}><UserCheck size={10}/>Cliente</span>
+                }
+              </div>
               <div style={{fontSize:28,fontWeight:900,color:T,marginBottom:8,letterSpacing:-0.5}}>{cliente.nome_clinica||"Clínica"}</div>
               <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap",marginBottom:10}}>
                 {cliente.responsavel  && <span style={{fontSize:13,color:T2,display:"flex",alignItems:"center",gap:5}}><Users size={13} color={T3}/>{cliente.responsavel}</span>}
@@ -692,16 +703,30 @@ export default function ClientePage() {
               </div>
             </div>
 
-            {/* PLANO DE EXECUÇÃO */}
+            {/* PLANO DE AÇÃO */}
             <div style={{background:C,borderRadius:20,padding:28,border:`1px solid ${BD}`}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                <Zap size={12} color={O}/>PLANO DE EXECUÇÃO — MÉTODO AXIS · 180 DIAS
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+                <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,display:"flex",alignItems:"center",gap:6}}>
+                  <Zap size={12} color={O}/>PLANO DE AÇÃO — MÉTODO AXIS
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  {[{v:"90",label:"90 dias"},{v:"180",label:"180 dias"},{v:"365",label:"365 dias"}].map(h=>(
+                    <button key={h.v} onClick={()=>setPlanoHorizonte(h.v)}
+                      style={{padding:"5px 14px",borderRadius:8,border:`1.5px solid ${planoHorizonte===h.v?O:BD}`,background:planoHorizonte===h.v?OL:C,color:planoHorizonte===h.v?O:T2,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div style={{fontSize:12,color:T3,marginBottom:20}}>
-                4 fases · operação de marketing integrada · assessoria contínua
+              <div style={{fontSize:12,color:T3,marginBottom:16}}>
+                {{
+                  "90":"3 fases · sprint inicial · fundação e primeiros resultados",
+                  "180":"4 fases · operação integrada · crescimento consistente",
+                  "365":"5 fases · ciclo completo · autoridade e expansão de longo prazo",
+                }[planoHorizonte]}
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                {diag.planoExecucao.map((fase,i) => (
+                {({"90":diag.planos.p90,"180":diag.planos.p180,"365":diag.planos.p365}[planoHorizonte]||diag.planos.p180).map((fase,i) => (
                   <div key={i} style={{borderRadius:14,border:`1px solid ${BD}`,overflow:"hidden"}}>
                     <div style={{padding:"12px 18px",background:fase.cor,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
                       <div>
@@ -825,12 +850,33 @@ export default function ClientePage() {
               </button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              {/* Selects rápidos */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:T2,letterSpacing:0.5,display:"block",marginBottom:6}}>TIPO DE CLIENTE</label>
+                  <select value={editFields.tipo_cliente||"cliente"} onChange={e=>setEditFields(p=>({...p,tipo_cliente:e.target.value}))}
+                    style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${BD}`,fontFamily:"inherit",fontSize:13,color:T,background:BG,outline:"none",cursor:"pointer"}}>
+                    <option value="cliente">Cliente</option>
+                    <option value="embaixador">Embaixador</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{fontSize:11,fontWeight:700,color:T2,letterSpacing:0.5,display:"block",marginBottom:6}}>HORIZONTE DO PLANO</label>
+                  <select value={editFields.plano_horizonte||"180"} onChange={e=>setEditFields(p=>({...p,plano_horizonte:e.target.value}))}
+                    style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${BD}`,fontFamily:"inherit",fontSize:13,color:T,background:BG,outline:"none",cursor:"pointer"}}>
+                    <option value="90">90 dias</option>
+                    <option value="180">180 dias</option>
+                    <option value="365">365 dias</option>
+                  </select>
+                </div>
+              </div>
+              {/* Campos de texto */}
               {[
-                {key:"plano_contratado",  label:"Plano Contratado",   placeholder:"Ex: Método Axis — 6 meses", type:"text"},
-                {key:"plano_recomendado", label:"Plano Recomendado",   placeholder:"Ex: Método Axis",          type:"text"},
-                {key:"meta_interna",      label:"Meta Interna (equipe)",placeholder:"Ex: R$80.000/mês em 6 meses",    type:"text"},
-                {key:"proxima_sessao",    label:"Próxima Sessão",       placeholder:"Ex: 15/04/2026",                  type:"text"},
-                {key:"notas_estrategicas",label:"Notas Estratégicas",   placeholder:"Observações internas da equipe...",type:"textarea"},
+                {key:"plano_contratado",  label:"Plano Contratado",     placeholder:"Ex: Método Axis — 6 meses", type:"text"},
+                {key:"plano_recomendado", label:"Plano Recomendado",     placeholder:"Ex: Método Axis",          type:"text"},
+                {key:"meta_interna",      label:"Meta Interna (equipe)", placeholder:"Ex: R$80.000/mês em 6 meses", type:"text"},
+                {key:"proxima_sessao",    label:"Próxima Sessão",        placeholder:"Ex: 15/04/2026",           type:"text"},
+                {key:"notas_estrategicas",label:"Notas Estratégicas",    placeholder:"Observações internas da equipe...", type:"textarea"},
               ].map(f => (
                 <div key={f.key}>
                   <label style={{fontSize:11,fontWeight:700,color:T2,letterSpacing:0.5,display:"block",marginBottom:6}}>{f.label.toUpperCase()}</label>

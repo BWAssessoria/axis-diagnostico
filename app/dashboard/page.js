@@ -5,7 +5,7 @@ import {
   Users, BarChart3, Target, Settings2, Activity, BadgeCheck,
   Search, ArrowLeft, Shield, AlertCircle, Trophy, Sparkles,
   TrendingUp, ChevronRight, UserPlus, Pencil, Trash2, Check, X,
-  UserCheck, UserX, Mail, LogOut
+  UserCheck, UserX, Mail, LogOut, Star
 } from "lucide-react";
 import { analyze, analyzeICP, nivelFn, fmtR, pm } from "@/lib/analysis";
 
@@ -345,18 +345,23 @@ function DashboardMain({ clients, loading, onLogout }) {
                 const icp   = analyzeICP(c);
                 const dt    = c._created_at ? new Date(c._created_at).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}) : "—";
                 const planoContratado = c.meta_info?.plano_contratado;
+                const tipoCliente = c.meta_info?.tipo_cliente || "cliente";
 
                 return (
                   <a key={c._clienteId} href={`/dashboard/${c._clienteId}`}
-                    style={{background:C,borderRadius:14,padding:"16px 22px",border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:16,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",transition:"all 0.2s",textDecoration:"none",cursor:"pointer"}}
-                    onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 16px rgba(0,0,0,0.09)";e.currentTarget.style.borderColor=OB;}}
-                    onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.04)";e.currentTarget.style.borderColor=BD;}}>
-                    <div style={{width:42,height:42,borderRadius:11,background:OL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:O,flexShrink:0}}>
+                    style={{background:C,borderRadius:14,padding:"16px 22px",border:`1px solid ${tipoCliente==="embaixador"?"#FFD54F":BD}`,display:"flex",alignItems:"center",gap:16,boxShadow:"0 1px 4px rgba(0,0,0,0.04)",transition:"all 0.2s",textDecoration:"none",cursor:"pointer"}}
+                    onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 4px 16px rgba(0,0,0,0.09)";e.currentTarget.style.borderColor=tipoCliente==="embaixador"?"#FFC107":OB;}}
+                    onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 1px 4px rgba(0,0,0,0.04)";e.currentTarget.style.borderColor=tipoCliente==="embaixador"?"#FFD54F":BD;}}>
+                    <div style={{width:42,height:42,borderRadius:11,background:tipoCliente==="embaixador"?"#FFF8E1":OL,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:800,color:tipoCliente==="embaixador"?"#FF9800":O,flexShrink:0}}>
                       {(c.nome_clinica||"?")[0].toUpperCase()}
                     </div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                         <span style={{fontSize:14,fontWeight:700,color:T}}>{c.nome_clinica}</span>
+                        {tipoCliente==="embaixador"
+                          ? <span style={{display:"flex",alignItems:"center",gap:3,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"#FFF8E1",color:"#FF9800"}}><Star size={9} fill="#FF9800" color="#FF9800"/>Embaixador</span>
+                          : <span style={{display:"flex",alignItems:"center",gap:3,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:BL,color:B}}><UserCheck size={9}/>Cliente</span>
+                        }
                         <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:nv.bg,color:nv.color}}>Saúde {saude}%</span>
                         <span style={{fontSize:11,fontWeight:700,padding:"2px 9px",borderRadius:20,background:`${icp.prodCor}18`,color:icp.prodCor}}>
                           ICP {icp.icpPct}%{icp.plano?` · ${icp.plano}`:""}
