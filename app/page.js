@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import {
   ArrowLeft, ChevronDown, ChevronRight, CheckCircle2, AlertCircle,
@@ -782,13 +783,29 @@ function Dashboard({data,onBack}){
   </div>);
 }
 
-export default function App(){
+function AppInner(){
+  const searchParams = useSearchParams();
+  const clienteId = searchParams.get("cliente_id") || null;
+
   const [ans,setAns]=useState({});
   const [openId,setOpenId]=useState(sections[0].id);
   const [saving,setSaving]=useState(false);
   const [submitted,setSubmitted]=useState(false);
   const [errs,setErrs]=useState([]);
-  const [welcomed,setWelcomed]=useState(false);
+  const [welcomed,setWelcomed]=useState(!!clienteId); // pula boas-vindas no retorno
+  const [clienteNome,setClienteNome]=useState("");
+  const [periodoNovo,setPeriodoNovo]=useState("3_meses");
+
+  // Se vier com cliente_id, pré-carrega dados do cliente
+  useEffect(()=>{
+    if(!clienteId) return;
+    (async()=>{
+      const {data:c}=await supabase.from("clientes").select("*").eq("id",clienteId).single();
+      if(!c) return;
+      setClienteNome(c.nome_clinica||"");
+      setAns(prev=>({...prev,nome:c.responsavel||"",nome_clinica:c.nome_clinica||"",whatsapp:c.whatsapp||"",cidade_estado:c.cidade||""}));
+    })();
+  },[clienteId]);
 
   const answered=sections.reduce((a,s)=>a+s.qs.filter(q=>ans[q.id]&&String(ans[q.id]).trim()!=="").length,0);
   const pct=Math.round(answered/totalQ*100);
@@ -798,15 +815,23 @@ export default function App(){
     if(miss.length>0){setErrs(miss);for(const s of sections){if(s.qs.some(q=>miss.includes(q.id))){setOpenId(s.id);break;}}return;}
     setErrs([]);
     const entry={...ans,_ts:new Date().toISOString()};
-    // 1. Criar cliente
-    const {data:novoCliente,error:errC}=await supabase.from("clientes")
-      .insert({nome_clinica:ans.nome_clinica,responsavel:ans.nome,cidade:ans.cidade_estado,whatsapp:ans.whatsapp})
-      .select("id").single();
-    if(errC){alert("Erro ao criar cliente: "+errC.message);return;}
-    // 2. Criar diagnóstico inicial
-    const {error:errD}=await supabase.from("diagnosticos")
-      .insert({cliente_id:novoCliente.id,data:entry,periodo:"inicial",versao:1});
-    if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
+    if(clienteId){
+      // Novo diagnóstico para cliente existente — apenas insere diagnosticos
+      const {data:diags}=await supabase.from("diagnosticos").select("versao").eq("cliente_id",clienteId).order("versao",{ascending:false}).limit(1);
+      const proxVersao=(diags?.[0]?.versao||0)+1;
+      const {error:errD}=await supabase.from("diagnosticos")
+        .insert({cliente_id:clienteId,data:entry,periodo:periodoNovo,versao:proxVersao});
+      if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
+    } else {
+      // Novo cliente + diagnóstico inicial
+      const {data:novoCliente,error:errC}=await supabase.from("clientes")
+        .insert({nome_clinica:ans.nome_clinica,responsavel:ans.nome,cidade:ans.cidade_estado,whatsapp:ans.whatsapp})
+        .select("id").single();
+      if(errC){alert("Erro ao criar cliente: "+errC.message);return;}
+      const {error:errD}=await supabase.from("diagnosticos")
+        .insert({cliente_id:novoCliente.id,data:entry,periodo:"inicial",versao:1});
+      if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
+    }
     setSubmitted(true);
   };
 
@@ -814,9 +839,12 @@ export default function App(){
     <div style={{minHeight:"100vh",background:BG,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center",padding:40,maxWidth:480}}>
         <div style={{width:80,height:80,borderRadius:"50%",background:GL,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",fontSize:40}}>✓</div>
-        <h1 style={{fontSize:28,fontWeight:800,color:T}}>Mapeamento enviado!</h1>
-        <p style={{color:T2,marginBottom:24}}>Nossa equipe analisará seus dados em breve.</p>
-        <button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:O,color:"#fff",border:"none",borderRadius:10,cursor:"pointer",fontWeight:700}}>Página Inicial</button>
+        <h1 style={{fontSize:28,fontWeight:800,color:T}}>{clienteId?"Diagnóstico salvo!":"Mapeamento enviado!"}</h1>
+        <p style={{color:T2,marginBottom:24}}>{clienteId?"Novo diagnóstico registrado no prontuário de "+clienteNome+".":"Nossa equipe analisará seus dados em breve."}</p>
+        {clienteId
+          ? <a href="/dashboard" style={{display:"inline-block",padding:"12px 24px",background:O,color:"#fff",textDecoration:"none",borderRadius:10,fontWeight:700}}>Voltar ao Dashboard</a>
+          : <button onClick={()=>window.location.reload()} style={{padding:"12px 24px",background:O,color:"#fff",border:"none",borderRadius:10,cursor:"pointer",fontWeight:700}}>Página Inicial</button>
+        }
       </div>
     </div>
   );
@@ -883,15 +911,37 @@ export default function App(){
             </div>
           ):(
             <>
+              {clienteId && (
+                <div style={{background:C,borderRadius:14,padding:"16px 20px",marginBottom:12,border:`1px solid ${BD}`,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+                  <div style={{flex:1,minWidth:160}}>
+                    <div style={{fontSize:11,fontWeight:700,color:T3,letterSpacing:1,marginBottom:2}}>NOVO DIAGNÓSTICO</div>
+                    <div style={{fontSize:14,fontWeight:800,color:T}}>{clienteNome}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <label style={{fontSize:12,fontWeight:600,color:T2}}>Período:</label>
+                    <select value={periodoNovo} onChange={e=>setPeriodoNovo(e.target.value)}
+                      style={{padding:"6px 10px",borderRadius:8,border:`1px solid ${BD}`,fontSize:12,fontWeight:600,color:T,background:C,fontFamily:"inherit",cursor:"pointer"}}>
+                      <option value="3_meses">3 meses</option>
+                      <option value="6_meses">6 meses</option>
+                      <option value="9_meses">9 meses</option>
+                      <option value="12_meses">12 meses</option>
+                    </select>
+                  </div>
+                </div>
+              )}
               <div style={{marginBottom:8,paddingTop:4}}>
                 {sections.map(s=><Sec key={s.id} s={s} ans={ans} setAns={setAns} open={openId===s.id} errs={errs} toggle={()=>setOpenId(openId===s.id?null:s.id)}/>)}
               </div>
               <button onClick={handleSubmit} style={{width:"100%",background:`linear-gradient(135deg,${O},#FF6030)`,color:"#fff",border:"none",borderRadius:13,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:`0 4px 20px ${O}44`}}>
-                Enviar mapeamento <ChevronRight size={18}/>
+                {clienteId?"Salvar novo diagnóstico":"Enviar mapeamento"} <ChevronRight size={18}/>
               </button>
             </>
           )}
         </div>
     </div>
   );
+}
+
+export default function App(){
+  return <Suspense fallback={null}><AppInner/></Suspense>;
 }

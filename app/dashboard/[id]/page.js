@@ -8,7 +8,7 @@ import {
   Activity, TrendingUp, DollarSign, MapPin, Phone, Users,
   BadgeCheck, ChevronRight, Shield, Brain, Trash2, Edit3,
   Download, FileText, TrendingDown, Minus, X, Save, Info,
-  Lightbulb, AlertTriangle
+  Lightbulb, AlertTriangle, PlusCircle
 } from "lucide-react";
 import {
   analyze, analyzeICP, getPacRecomendacoes,
@@ -303,6 +303,12 @@ export default function ClientePage() {
         </span>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:12,color:T3,marginRight:4}}>{dt}</span>
+          <button onClick={()=>router.push(`/?cliente_id=${id}`)}
+            style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",border:`1px solid ${GL}`,borderRadius:8,background:C,cursor:"pointer",fontSize:12,fontWeight:600,color:G,fontFamily:"inherit",transition:"all 0.2s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background=GL;}}
+            onMouseLeave={e=>{e.currentTarget.style.background=C;}}>
+            <PlusCircle size={13}/> Novo Diagnóstico
+          </button>
           <button onClick={handlePDF} disabled={pdfLoading}
             style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",border:`1px solid ${BD}`,borderRadius:8,background:C,cursor:"pointer",fontSize:12,fontWeight:600,color:T2,fontFamily:"inherit",transition:"all 0.2s"}}
             onMouseEnter={e=>{e.currentTarget.style.borderColor=B;e.currentTarget.style.color=B;}}
@@ -365,7 +371,7 @@ export default function ClientePage() {
                     {diagnosticos.map((d,i) => (
                       <button key={d.id} onClick={()=>setDiagIdx(i)}
                         style={{padding:"5px 12px",borderRadius:8,border:`1.5px solid ${i===diagIdx?O:BD}`,background:i===diagIdx?OL:C,color:i===diagIdx?O:T2,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
-                        {d.periodo==="inicial"?"Diagnóstico Inicial":d.periodo} · {new Date(d.created_at).toLocaleDateString("pt-BR",{month:"short",year:"numeric"})}
+                        {({inicial:"Diagnóstico Inicial","3_meses":"3 Meses","6_meses":"6 Meses","9_meses":"9 Meses","12_meses":"12 Meses"})[d.periodo]||d.periodo} · {new Date(d.created_at).toLocaleDateString("pt-BR",{month:"short",year:"numeric"})}
                         {i===0&&<span style={{marginLeft:4,fontSize:9,background:O,color:"#fff",borderRadius:4,padding:"1px 5px"}}>Atual</span>}
                       </button>
                     ))}
@@ -491,11 +497,10 @@ export default function ClientePage() {
                 <Ring v={icp.icpPct} max={100} color={icp.prodCor} size={100}/>
               </div>
               <Bar pct={icp.icpPct} color={icp.prodCor} height={10}/>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginTop:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginTop:20}}>
                 {[
-                  {label:"Implementação", range:"R$15k–50k", color:O, active:icp.produto==="Implementação"},
-                  {label:"Starter",       range:"R$50k–80k", color:G, active:icp.produto==="Assessoria"&&icp.plano==="Starter"},
-                  {label:"Scale",         range:"R$80k+",    color:B, active:icp.produto==="Assessoria"&&icp.plano==="Scale"},
+                  {label:"GPS Gravado",  range:"< R$10k/mês",  color:"#9C27B0", active:icp.produto==="GPS Gravado"},
+                  {label:"Método Axis",  range:"R$10k+/mês",   color:O,         active:icp.produto==="Método Axis"},
                 ].map(p => (
                   <div key={p.label} style={{padding:"12px",borderRadius:10,textAlign:"center",border:`1.5px solid ${p.active?p.color:BD}`,background:p.active?`${p.color}10`:BG}}>
                     <div style={{fontSize:12,fontWeight:700,color:p.active?p.color:T3,marginBottom:2}}>{p.label}</div>
@@ -705,14 +710,12 @@ export default function ClientePage() {
             {/* PLANO DE EXECUÇÃO */}
             <div style={{background:C,borderRadius:20,padding:28,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                <Zap size={12} color={O}/>PLANO DE EXECUÇÃO — {icp.produto==="Implementação"?"AXIS GPS · 45 DIAS":icp.plano==="Starter"?"ASSESSORIA STARTER · 90 DIAS":"ASSESSORIA SCALE · 180 DIAS"}
+                <Zap size={12} color={O}/>PLANO DE EXECUÇÃO — {icp.produto==="GPS Gravado"?"GPS GRAVADO · 8 SEMANAS":"MÉTODO AXIS · 180 DIAS"}
               </div>
               <div style={{fontSize:12,color:T3,marginBottom:20}}>
-                {icp.produto==="Implementação"
-                  ? "4 encontros estratégicos · entrega produtizada · sprint de 45 dias"
-                  : icp.plano==="Starter"
-                  ? "3 fases de evolução · crescimento consistente · referência de 90 dias"
-                  : "3 fases de escala · multi-canal · referência de 180 dias"}
+                {icp.produto==="GPS Gravado"
+                  ? "4 fases · infoproduto gravado · sprint de 8 semanas"
+                  : "4 fases · operação de marketing integrada · assessoria contínua"}
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {diag.planoExecucao.map((fase,i) => (
@@ -840,8 +843,8 @@ export default function ClientePage() {
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               {[
-                {key:"plano_contratado",  label:"Plano Contratado",   placeholder:"Ex: Assessoria Starter — 6 meses", type:"text"},
-                {key:"plano_recomendado", label:"Plano Recomendado",   placeholder:"Ex: Assessoria Scale",             type:"text"},
+                {key:"plano_contratado",  label:"Plano Contratado",   placeholder:"Ex: Método Axis — 6 meses", type:"text"},
+                {key:"plano_recomendado", label:"Plano Recomendado",   placeholder:"Ex: Método Axis",          type:"text"},
                 {key:"meta_interna",      label:"Meta Interna (equipe)",placeholder:"Ex: R$80.000/mês em 6 meses",    type:"text"},
                 {key:"proxima_sessao",    label:"Próxima Sessão",       placeholder:"Ex: 15/04/2026",                  type:"text"},
                 {key:"notas_estrategicas",label:"Notas Estratégicas",   placeholder:"Observações internas da equipe...",type:"textarea"},
