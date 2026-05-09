@@ -499,8 +499,8 @@ export default function ClientePage() {
               <Bar pct={icp.icpPct} color={icp.prodCor} height={10}/>
               <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginTop:20}}>
                 {[
-                  {label:"GPS Gravado",  range:"< R$10k/mês",  color:"#9C27B0", active:icp.produto==="GPS Gravado"},
-                  {label:"Método Axis",  range:"R$10k+/mês",   color:O,         active:icp.produto==="Método Axis"},
+                  {label:"Método Axis",  range:"R$10k+/mês",  color:O,    active:icp.produto==="Método Axis"},
+                  {label:"Fora do ICP",  range:"< R$10k/mês", color:"#999",active:icp.produto==="Fora do ICP"||icp.produto==="A Qualificar"},
                 ].map(p => (
                   <div key={p.label} style={{padding:"12px",borderRadius:10,textAlign:"center",border:`1.5px solid ${p.active?p.color:BD}`,background:p.active?`${p.color}10`:BG}}>
                     <div style={{fontSize:12,fontWeight:700,color:p.active?p.color:T3,marginBottom:2}}>{p.label}</div>
@@ -664,21 +664,6 @@ export default function ClientePage() {
                 </div>
               </div>
             )}
-            {diag.metaSmart.meta45 !== null && (
-              <div style={{background:C,borderRadius:20,padding:28,border:`1px solid ${BD}`}}>
-                <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:14,display:"flex",alignItems:"center",gap:6}}>
-                  <Target size={12} color={O}/>META GPS — VITÓRIA DOS 45 DIAS
-                </div>
-                <div style={{borderRadius:16,padding:"22px 24px",background:`linear-gradient(135deg,${O}15,${O}05)`,border:`1.5px solid ${O}33`}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                    <span style={{fontSize:10,fontWeight:700,color:O,letterSpacing:1}}>META FATURAMENTO — FIM DO SPRINT</span>
-                    <span style={{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:20,background:`${O}22`,color:O}}>45 dias</span>
-                  </div>
-                  <div style={{fontSize:36,fontWeight:900,color:O,letterSpacing:-1,marginBottom:10}}>{fmtR(diag.metaSmart.meta45)}</div>
-                  <div style={{fontSize:13,color:T2,lineHeight:1.6}}>{diag.metaSmart.meta45desc}</div>
-                </div>
-              </div>
-            )}
 
             {/* AXIS PROTOCOL ENGINEERING */}
             <div style={{background:C,borderRadius:20,padding:28,border:`1px solid ${BD}`}}>
@@ -710,12 +695,10 @@ export default function ClientePage() {
             {/* PLANO DE EXECUÇÃO */}
             <div style={{background:C,borderRadius:20,padding:28,border:`1px solid ${BD}`}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                <Zap size={12} color={O}/>PLANO DE EXECUÇÃO — {icp.produto==="GPS Gravado"?"GPS GRAVADO · 8 SEMANAS":"MÉTODO AXIS · 180 DIAS"}
+                <Zap size={12} color={O}/>PLANO DE EXECUÇÃO — MÉTODO AXIS · 180 DIAS
               </div>
               <div style={{fontSize:12,color:T3,marginBottom:20}}>
-                {icp.produto==="GPS Gravado"
-                  ? "4 fases · infoproduto gravado · sprint de 8 semanas"
-                  : "4 fases · operação de marketing integrada · assessoria contínua"}
+                4 fases · operação de marketing integrada · assessoria contínua
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:12}}>
                 {diag.planoExecucao.map((fase,i) => (
