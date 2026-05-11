@@ -63,7 +63,7 @@ export async function POST(request) {
       business_name: answers.nome_clinica,
       owner_name: answers.nome,
       phone: answers.whatsapp,
-      status: 'lead',
+      status: 'active',
     })
     .select('id')
     .single();
