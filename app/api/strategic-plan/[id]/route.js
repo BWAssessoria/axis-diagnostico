@@ -36,19 +36,21 @@ const FIELD_LABELS = {
 
 // ── Product scope definitions ─────────────────────────────────────────────────
 function getProductScope(slug) {
-  const scopes = {
-    gps: {
-      title: 'AXIS GPS — Sprint Estratégico 45 Dias',
-      scope: `Sprint de 45 dias com 4 pilares:
-1. Diagnóstico 360 (dados já coletados)
-2. Método AXIS Protocol: construir 1-2 protocolos de alto valor com nome proprietário, preço e argumento de venda em consulta
-3. Posicionamento Estratégico: Instagram (stories/reels orientados a conversão) + Google Meu Negócio
-4. Estrutura Comercial: script WhatsApp qualificador + playbook de atendimento da secretária
+  const metodoAxis = {
+    title: 'Método Axis — Assessoria Mensal',
+    scope: `Assessoria mensal recorrente para biomédicos e odontologistas com foco em harmonização facial.
+ICP: biomédico ≥ R$15k/mês ou odontologista ≥ R$12k/mês, perfil solo, 26–45 anos, foco em harmonização.
+Planos: 3, 6 ou 12 meses. Ticket de contrato: R$2.500–R$3.500/mês.
 
-NÃO inclui mídia paga. Aquisição é via Instagram orgânico, Google Meu Negócio e indicação estruturada.
-Perfil típico: faturamento até R$35k/mês ou downsell do PAE.`,
-      planFormat: `## 📍 Situação Atual
-[Análise honesta dos dados — sem eufemismos. O que os números mostram de fato.]
+3 fases de entrega:
+1. Pré-onboarding: Construção de Protocolos, Implementações de suporte, Acessos (área de membros, Facebook, sistema de gestão)
+2. Onboarding: Call de onboarding + Regras Importantes
+3. Entrega Contínua: Construção de Audiência e Aquisição, Funil de Conversão, Análise de Métricas
+
+Pilares de entrega: presença digital (conteúdo + GMN + SEO local), captação (Meta Ads + CRM + comercial) e autoridade de marca (protocolos nomeados de alto ticket + cases com dados).
+Meta central: leads qualificados chegando de forma previsível + cada paciente valendo mais com protocolo de alto ticket.`,
+    planFormat: `## 📍 Situação Atual
+[Análise honesta dos dados — faturamento declarado, funil, ticket, canais ativos e gargalos visíveis.]
 
 ## 🔍 Diagnóstico Principal
 [O ÚNICO gargalo central que está travando o crescimento. Por que é este e não outro.]
@@ -58,167 +60,49 @@ Perfil típico: faturamento até R$35k/mês ou downsell do PAE.`,
 - Hipótese 2: ...
 - Hipótese 3: ...
 
-## 🧪 Protocolos Sugeridos (1-2 propostas)
-Com base nos procedimentos e perfil do cliente, sugira protocolos de alto valor:
+## 🧪 Protocolos Sugeridos (1-2 propostas) — PRIORIDADE MÁXIMA
+Com base nos procedimentos e perfil do cliente, sugira protocolos de alto valor com nome proprietário:
 
-**[Nome proprietário — ex: "Protocolo Beleza Real"]**
+**[Nome proprietário — ex: "Protocolo Harmonia Completa"]**
 Composição: [procedimentos combinados]
 Preço sugerido: R$[X.XXX]
-Por que esse preço: [baseado em margem + valor percebido]
-Argumento de venda em consulta: "[como apresentar ao paciente sem falar em procedimento avulso]"
+Argumento de venda em consulta: "[como apresentar ao paciente — resultado, não procedimento]"
+Integração nas campanhas: [como anunciar o resultado no anúncio]
 
-## 🗓️ Plano de Ação — 45 Dias
-Prefixe cada ação com o pilar entre colchetes: [posicionamento] [comercial] [protocolo]
-GPS NÃO usa [trafego] — este produto não inclui mídia paga.
+## 🗓️ Plano de Ação — Primeiros 90 Dias
+Prefixe cada ação com o pilar entre colchetes: [posicionamento] [comercial] [trafego] [protocolo]
 
-**Semana 1-2: [tema — ex: Estrutura Comercial]**
-- [comercial] Ação concreta 1 (responsável: quem | prazo: quando)
-- [protocolo] Ação concreta 2 (responsável: quem | prazo: quando)
+**Mês 1 — Pré-onboarding + Fundação**
+- [protocolo] Ação 1 (responsável / prazo)
+- [comercial] Ação 2 (responsável / prazo)
+- [posicionamento] Ação 3 (responsável / prazo)
 
-**Semana 3-4: [tema — ex: Posicionamento e Protocolos]**
-- [posicionamento] ...
-- [protocolo] ...
-
-**Semana 5-6: [tema — ex: Ajustes e Consolidação]**
+**Mês 2 — Onboarding + Captação Estruturada**
+- [trafego] ...
 - [comercial] ...
 - [posicionamento] ...
 
-## 📊 KPIs — Baseline e Metas 45 Dias
-| Indicador | Hoje (declarado) | Meta 45 dias | Benchmark do setor |
-|---|---|---|---|
-| Ticket médio | R$X | R$X | R$1.500–R$4.500 |
-| Conv. Lead → Consulta | X% | X% | 35–50% top performers |
-| Posição GMN (buscas locais) | sem dados | aparecer no top 3 | — |
-
-## ⚠️ Riscos e Como Mitigar
-1. **[Risco]**: [como mitigar especificamente]
-2. **[Risco]**: ...`,
-    },
-    starter: {
-      title: 'PAE Starter — Assessoria Mensal',
-      scope: `Assessoria mensal recorrente (contrato 12 meses):
-1. Diagnóstico 360 (dados coletados, revisado mensalmente)
-2. Compra de Mídia Digital: gerenciamento de Meta Ads (Instagram + Facebook)
-3. Posicionamento Estratégico: comunicação digital orientada para conversão
-4. Estrutura Comercial: script WhatsApp + playbook de atendimento
-
-NÃO inclui Método AXIS Protocol nem AXIS Academy.
-Perfil típico: faturamento R$35k–R$70k/mês. Quer encerrar dependência de indicação.
-Meta central: leads qualificados chegando de forma previsível todo mês.`,
-      planFormat: `## 📍 Situação Atual
-[Análise honesta dos dados — o que os números mostram de fato sobre faturamento, funil e aquisição.]
-
-## 🔍 Diagnóstico Principal
-[O gargalo central — onde está a maior perda no funil? Aquisição, conversão ou recorrência?]
-
-## 💡 Hipóteses (2-3 causas prováveis)
-- Hipótese 1 (mais provável): ...
-- Hipótese 2: ...
-- Hipótese 3: ...
-
-## 🎯 Prioridades Estratégicas — Primeiros 90 Dias
-Prefixe cada ação com o pilar entre colchetes: [posicionamento] [comercial] [trafego]
-
-**Mês 1: Estruturação do Funil**
-- [comercial] Ação 1 (responsável / prazo)
-- [trafego] Ação 2 (responsável / prazo)
-
-**Mês 2: Operação e Otimização de Mídia**
+**Mês 3 — Entrega Contínua + Otimização**
 - [trafego] ...
-- [posicionamento] ...
-
-**Mês 3: Escala e Ajuste de CAC**
-- [trafego] ...
+- [protocolo] ...
 - [comercial] ...
 
 ## 📊 KPIs — Baseline e Metas 90 Dias
 | Indicador | Hoje (declarado) | Meta Mês 1 | Meta Mês 3 | Benchmark |
 |---|---|---|---|---|
 | Faturamento mensal | R$X | R$X | R$X | — |
+| Ticket médio | R$X | R$X | R$X | R$2.500–R$6.000 c/ protocolo |
 | Leads/mês (Meta Ads) | — | X | X | — |
-| CPL (custo por lead) | — | R$X | R$X | R$15–R$60 estética |
+| CPL (custo por lead) | — | R$X | R$X | R$30–R$80 estética |
 | Conv. Lead → Agendamento | X% | X% | X% | 35–50% top |
 | Show rate | X% | X% | X% | 75–85% top |
 
 ## ⚠️ Riscos e Como Mitigar
-1. **[Risco]**: [como mitigar]
-2. **[Risco]**: ...`,
-    },
-    scale: {
-      title: 'PAE Scale — Assessoria Mensal Completa',
-      scope: `Assessoria mensal completa recorrente (contrato 12 meses) — todos os 4 pilares AXIS:
-1. Diagnóstico 360 (dados coletados, revisado mensalmente)
-2. Compra de Mídia Digital: Meta Ads + Google Ads (conforme estratégia)
-3. Método AXIS Protocol: construir 2-3 protocolos de alto valor integrados nas campanhas + revisão trimestral
-4. AXIS Academy: conteúdo mensal específico (treinamento secretária, playbook de protocolos, estratégias de ticket)
-
-Também inclui: 2 encontros/mês, gestor de tráfego no grupo WPP.
-Perfil típico: faturamento acima de R$70k/mês. Tem estrutura, quer escalar com protocolo.
-Meta central: mais pacientes + cada paciente valendo muito mais (protocolo vs. procedimento avulso).
-Um paciente de protocolo vale 5–12x mais que um de procedimento avulso.`,
-      planFormat: `## 📍 Situação Atual
-[Análise honesta dos dados — faturamento, funil, ticket médio, canais e gargalos visíveis.]
-
-## 🔍 Diagnóstico Principal
-[O gargalo central — ticket baixo por procedimento avulso? Funil de aquisição? Conversão em consulta?]
-
-## 💡 Hipóteses (2-3 causas prováveis)
-- Hipótese 1 (mais provável): ...
-- Hipótese 2: ...
-- Hipótese 3: ...
-
-## 🧪 Protocolos Sugeridos (2-3 propostas) — PRIORIDADE MÁXIMA
-Com base nos procedimentos e perfil do cliente:
-
-**[Nome proprietário — ex: "Protocolo Harmonia Premium"]**
-Composição: [procedimentos combinados estrategicamente]
-Preço sugerido: R$[X.XXX]
-Integração nas campanhas: [como anunciar o resultado, não o procedimento]
-Argumento de venda em consulta: "[como apresentar ao paciente]"
-
-## 🎯 Plano de Ação — Primeiros 90 Dias
-Prefixe cada ação com o pilar entre colchetes: [protocolo] [trafego] [comercial] [posicionamento]
-Scale PRIORIZA [protocolo] — pelo menos 30% das ações devem ser deste pilar.
-
-**Mês 1: Onboarding Scale + Construção de Protocolos**
-- [protocolo] Ação 1 (responsável / prazo)
-- [comercial] Ação 2 (responsável / prazo)
-- [trafego] Ação 3 (responsável / prazo)
-
-**Mês 2: Integração de Protocolos nas Campanhas**
-- [protocolo] ...
-- [trafego] ...
-
-**Mês 3: Escala e Otimização**
-- [protocolo] ...
-- [trafego] ...
-- [comercial] ...
-
-## 📚 AXIS Academy — Prioridades dos Primeiros 3 Meses
-- Mês 1: [tema mais urgente — ex: Treinamento comercial da secretária para script de protocolo]
-- Mês 2: [ex: Como não dar desconto — apresentação de valor em consulta]
-- Mês 3: [ex: Estratégias de ancoragem e upsell pós-protocolo]
-
-## 📊 KPIs — Baseline e Metas 90 Dias
-| Indicador | Hoje (declarado) | Meta Mês 1 | Meta Mês 3 | Benchmark Scale |
-|---|---|---|---|---|
-| Faturamento mensal | R$X | R$X | R$X | — |
-| Ticket médio | R$X | R$X | R$X | R$4.500–R$12k c/ protocolo |
-| Conv. Consulta → Protocolo | X% | X% | X% | 60–80% top |
-| Leads/mês | X | X | X | — |
-| Conv. Lead → Agendamento | X% | X% | X% | 35–50% top |
-
-## ⚠️ Riscos e Como Mitigar
 1. **[Risco]**: [como mitigar especificamente]
 2. **[Risco]**: ...`,
-    },
   };
 
-  const normalized = slug?.toLowerCase().replace(/[^a-z]/g, '');
-  if (normalized?.includes('gps'))     return scopes.gps;
-  if (normalized?.includes('starter')) return scopes.starter;
-  if (normalized?.includes('scale'))   return scopes.scale;
-  return scopes.scale;
+  return metodoAxis;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -247,24 +131,13 @@ function buildAssetsText(assets) {
   }).join('\n');
 }
 
-function buildProductRules(slug) {
-  const normalized = slug?.toLowerCase().replace(/[^a-z]/g, '');
-  if (normalized?.includes('gps')) {
-    return `## REGRA CRÍTICA — GPS
-Este cliente contratou o GPS, que NÃO inclui tráfego pago.
-- PROIBIDO sugerir ações com pilar [trafego] (Meta Ads, Google Ads, mídia paga).
-- Se o cliente mencionar interesse em tráfego, redirecione: "isso é possível com upgrade para PAE Starter".
-- Foque exclusivamente em: [posicionamento] (orgânico, GMN, Instagram), [comercial] (script, secretária) e [protocolo] (Método AXIS).`;
-  }
-  if (normalized?.includes('scale')) {
-    return `## REGRA CRÍTICA — Scale
-Este cliente contratou o PAE Scale — o nível máximo da AXIS.
-- O Método AXIS Protocol é o diferencial central deste produto. PRIORIZE [protocolo] em todas as seções.
+function buildProductRules() {
+  return `## REGRA CRÍTICA — Método Axis
+Este cliente contratou o Método Axis — assessoria completa de marketing para estética avançada.
+- SEMPRE inclua pelo menos 1 protocolo de alto ticket com nome proprietário, composição e preço.
 - Mínimo de 30% das ações do Plano de Ação devem ter pilar [protocolo].
-- Sempre sugira 2-3 protocolos de alto ticket com nome proprietário, composição e preço (R$4.500–R$12.000).
-- Um paciente de protocolo vale 5–12× um de procedimento avulso — comunique isso no plano.`;
-  }
-  return '';
+- Use todos os 4 pilares: [posicionamento], [comercial], [trafego] e [protocolo].
+- Nunca venda procedimentos — venda transformações. Nunca cite "tráfego pago" — cite "leads qualificados chegando de forma previsível".`;
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -303,9 +176,8 @@ export async function POST(request, { params }) {
     ? await supabase.from('product_assets').select('*').eq('product_id', client.product_id)
     : { data: null };
 
-  const productScope  = getProductScope(client.products?.slug ?? client.products?.name ?? '');
-  const productSlug   = client.products?.slug ?? '';
-  const productRules  = buildProductRules(productSlug);
+  const productScope  = getProductScope(client.products?.slug ?? '');
+  const productRules  = buildProductRules();
   const assetsText    = buildAssetsText(productAssets);
 
   // Últimos 3 meses de métricas reais
@@ -357,8 +229,8 @@ Gerar um plano honesto, específico e acionável que identifique o gargalo centr
 Toda ação na seção "Plano de Ação" DEVE começar com a tag do pilar entre colchetes:
 - [posicionamento] → marca, GMN, Instagram orgânico, conteúdo, autoridade local
 - [comercial]      → script WhatsApp, secretária, follow-up, CRM, conversão em consulta
-- [trafego]        → Meta Ads, Google Ads, mídia paga, campanhas (apenas PAE Starter e Scale)
-- [protocolo]      → Método AXIS Protocol, criação/nomeação de protocolos, pricing, treinamento de venda de protocolo
+- [trafego]        → Meta Ads, Google Ads, mídia paga, campanhas (Método Axis inclui tráfego pago)
+- [protocolo]      → criação/nomeação de protocolos de alto ticket, pricing, treinamento de venda em consulta
 
 ${productRules}
 
@@ -371,15 +243,15 @@ ${productRules}
 - Crescimento mensal saudável: 8–15% em crescimento | 3–8% em fase madura
 
 ## Casos reais AXIS (referência interna — não cite os nomes)
-- Cliente GPS (biomédica, R$28k→R$73k em 45 dias): mesmos 80 leads, ticket R$1.400→R$3.200 (+129%). Alavanca: protocolos + script de atendimento
-- Cliente Scale (HOF, R$85k→R$210k em 6 meses): ticket R$1.250→R$6.400 (+412%). Alavanca: Protocolo Beleza Mineira R$8.200 integrado nas campanhas
+- Biomédica, R$28k→R$73k (+163%) com os mesmos 80 leads. Alavanca: protocolo nomeado + script de atendimento (ticket R$1.400→R$3.200)
+- Odontologista HOF, R$85k→R$210k (+147%) em 6 meses. Ticket R$1.250→R$6.400 (+412%). Alavanca: Protocolo R$8.200 integrado nas campanhas Meta Ads
 
 ## Regras gerais
 - Sempre em português brasileiro
 - Use dados exatos do cliente — nunca invente números
 - Identifique O gargalo principal, não uma lista genérica de problemas
 - Ações específicas (o quê, quando, quem)
-- Para GPS e Scale: sempre inclua protocolos sugeridos com nome, composição e preço
+- Sempre inclua protocolos sugeridos com nome proprietário, composição e preço
 - Nunca termine no meio de uma seção`;
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

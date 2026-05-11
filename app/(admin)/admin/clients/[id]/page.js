@@ -148,8 +148,7 @@ export default async function ClientDetailPage({ params, searchParams }) {
   const daysOnContract = client.start_date
     ? Math.floor((Date.now() - new Date(client.start_date)) / 86400000)
     : null;
-  const isGPS = client.products?.slug?.toLowerCase().includes('gps');
-  const daysLeftGPS = isGPS && daysOnContract != null ? Math.max(0, 45 - daysOnContract) : null;
+  const daysLeftGPS = null;
 
   return (
     <div>

@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/sync-pgm-all",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/anomaly-check",
-      "schedule": "0 8 * * 1"
-    }
-  ]
-}
+{}

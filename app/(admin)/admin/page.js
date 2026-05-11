@@ -110,11 +110,8 @@ export default async function AdminPage({ searchParams }) {
     if (lm?.meta_mensal_pct != null && sm?.meta_mensal_pct != null && lm.meta_mensal_pct < 0.8 && sm.meta_mensal_pct < 0.8)
       alerts.push({ type: 'meta_perdida', client: c, msg: `Meta abaixo de 80% por 2 meses (${(lm.meta_mensal_pct * 100).toFixed(0)}% / ${(sm.meta_mensal_pct * 100).toFixed(0)}%)` });
 
-    if (c.products?.slug?.includes('starter') && lm?.meta_mensal_pct >= 1 && sm?.meta_mensal_pct >= 1)
-      alerts.push({ type: 'upsell', client: c, msg: 'Meta atingida 2 meses — candidato a upsell para Scale' });
-
-    if (c.products?.slug?.includes('gps') && c.start_date && (now - new Date(c.start_date).getTime()) > 30 * DAY && lm?.meta_mensal_pct >= 1)
-      alerts.push({ type: 'upsell', client: c, msg: 'GPS acima da meta — propor PAE' });
+    if (c.products?.slug?.includes('metodo_axis') && lm?.meta_mensal_pct >= 1 && sm?.meta_mensal_pct >= 1)
+      alerts.push({ type: 'upsell', client: c, msg: 'Meta atingida 2 meses consecutivos — revisar plano e propor renovação/expansão' });
   }
 
   const totalAlerts = alerts.length + (semPlano > 0 ? 1 : 0);
