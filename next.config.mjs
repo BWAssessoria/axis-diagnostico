@@ -26,6 +26,12 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  async redirects() {
+    return [
+      { source: '/dashboard', destination: '/admin', permanent: false },
+      { source: '/dashboard/:path*', destination: '/admin', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {
