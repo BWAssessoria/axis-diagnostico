@@ -149,8 +149,19 @@ export default async function AdminPage({ searchParams }) {
       </div>
 
       {/* ── KPI Grid (client component com sparklines) ──────────────────── */}
-      <div className="mb-8">
+      <div className="mb-6">
         <KpiGrid ativos={ativos} pausados={pausados} churn={churn} leads={leads.length} />
+      </div>
+
+      {/* ── Widgets de carteira ──────────────────────────────────────────── */}
+      <div className="mb-8 grid grid-cols-2 gap-4">
+        <LeadFunnelWidget
+          total={clients.length + leads.length}
+          leads={leads.length}
+          ativos={ativos}
+          comPlano={clientsWithPlan.size}
+        />
+        <ClientGrowthChart clientCount={ativos} />
       </div>
 
       {/* ── Prioridades da Carteira ─────────────────────────────────────── */}
@@ -309,10 +320,8 @@ export default async function AdminPage({ searchParams }) {
         </div>
       )}
 
-      {/* ── Main grid: Tabela + Widgets ─────────────────────────────────── */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_284px]">
-
-        {/* Tabela */}
+      {/* ── Tabela ──────────────────────────────────────────────────────── */}
+      <div>
         <div>
           {/* Tabs */}
           <div
@@ -438,17 +447,6 @@ export default async function AdminPage({ searchParams }) {
               </Table>
             </Card>
           )}
-        </div>
-
-        {/* ── Widgets sidebar ─────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4">
-          <LeadFunnelWidget
-            total={clients.length + leads.length}
-            leads={leads.length}
-            ativos={ativos}
-            comPlano={clientsWithPlan.size}
-          />
-          <ClientGrowthChart clientCount={ativos} />
         </div>
       </div>
 
