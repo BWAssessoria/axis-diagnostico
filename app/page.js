@@ -1,18 +1,12 @@
 "use client";
 import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import {
   ArrowLeft, ChevronDown, ChevronRight, CheckCircle2, AlertCircle,
   Building2, MapPin, Phone, Users, BarChart3, Gem, Target, Megaphone,
   Rocket, TrendingUp, DollarSign, Settings2, Zap, Trophy, LogOut,
   LayoutDashboard, Search, Shield, Clock, Activity
 } from "lucide-react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 const O="#FF4500",OL="#FFF4F0",OB="#FFD4C4",G="#00C853",GL="#E8F9EF",R="#E53935",RL="#FFEBEE",Y="#FF9800",YL="#FFF8E1",B="#2196F3",BL="#E3F2FD";
 const T="#2D2D2D",T2="#6B6B6B",T3="#999",BD="#E8E8E8",BG="#FAFAFA",C="#FFFFFF",IB="#F5F5F5",DK="#1A1A1A";
@@ -800,8 +794,9 @@ function AppInner(){
   useEffect(()=>{
     if(!clienteId) return;
     (async()=>{
-      const {data:c}=await supabase.from("clientes").select("*").eq("id",clienteId).single();
-      if(!c) return;
+      const res=await fetch(`/api/submit-diagnostic?clienteId=${clienteId}`);
+      if(!res.ok) return;
+      const c=await res.json();
       setClienteNome(c.nome_clinica||"");
       setAns(prev=>({...prev,nome:c.responsavel||"",nome_clinica:c.nome_clinica||"",whatsapp:c.whatsapp||"",cidade_estado:c.cidade||""}));
     })();
@@ -814,24 +809,13 @@ function AppInner(){
     const miss=allQs.filter(q=>q.req).map(q=>q.id).filter(id=>!ans[id]||String(ans[id]).trim()==="");
     if(miss.length>0){setErrs(miss);for(const s of sections){if(s.qs.some(q=>miss.includes(q.id))){setOpenId(s.id);break;}}return;}
     setErrs([]);
-    const entry={...ans,_ts:new Date().toISOString()};
-    if(clienteId){
-      // Novo diagnóstico para cliente existente — apenas insere diagnosticos
-      const {data:diags}=await supabase.from("diagnosticos").select("versao").eq("cliente_id",clienteId).order("versao",{ascending:false}).limit(1);
-      const proxVersao=(diags?.[0]?.versao||0)+1;
-      const {error:errD}=await supabase.from("diagnosticos")
-        .insert({cliente_id:clienteId,data:entry,periodo:periodoNovo,versao:proxVersao});
-      if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
-    } else {
-      // Novo cliente + diagnóstico inicial
-      const {data:novoCliente,error:errC}=await supabase.from("clientes")
-        .insert({nome_clinica:ans.nome_clinica,responsavel:ans.nome,cidade:ans.cidade_estado,whatsapp:ans.whatsapp})
-        .select("id").single();
-      if(errC){alert("Erro ao criar cliente: "+errC.message);return;}
-      const {error:errD}=await supabase.from("diagnosticos")
-        .insert({cliente_id:novoCliente.id,data:entry,periodo:"inicial",versao:1});
-      if(errD){alert("Erro ao salvar diagnóstico: "+errD.message);return;}
-    }
+    const res=await fetch("/api/submit-diagnostic",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({answers:ans,clienteId:clienteId||null,periodoNovo:periodoNovo||null}),
+    });
+    const json=await res.json();
+    if(!res.ok){alert("Erro ao enviar: "+(json.error||res.statusText));return;}
     setSubmitted(true);
   };
 
