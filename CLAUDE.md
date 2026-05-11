@@ -18,7 +18,7 @@ SaaS interno da AXIS Clinic Brasil para a equipe de entrega acompanhar clínicas
 | Framework | Next.js (App Router), React |
 | Estilos | Inline styles — sem Tailwind, sem CSS modules |
 | Banco | Supabase (PostgreSQL + RLS permissiva allow_all) |
-| PDF | html2canvas + jsPDF |
+| PDF | html2canvas + jsPDF (dynamic import) |
 | Deploy | Vercel (push na main = deploy automático) |
 | Ícones | lucide-react |
 
@@ -46,11 +46,12 @@ const BD="#E8E8E8",BG="#F4F5F7",C="#FFFFFF";    // bordas/fundo/branco
 | `diagnosticos` | Snapshot do formulário: `id, cliente_id(fk), data(jsonb), periodo, versao, created_at` |
 | `membros` | Equipe AXIS: `id, nome, email, role, ativo, created_at` |
 | `cliente_membro` | Junction: `cliente_id, membro_id, papel` |
-| `mapeamentos` | Tabela legada (não usar em código novo) |
 
 ### clientes.meta (jsonb)
 Campos estratégicos editáveis pela equipe:
 - `plano_contratado`, `plano_recomendado`, `meta_interna`, `notas_estrategicas`, `proxima_sessao`
+- `tipo_cliente` — `"cliente"` (padrão) ou `"embaixador"`
+- `plano_horizonte` — `"90"`, `"180"` (padrão) ou `"365"`
 
 ### membros.role — valores válidos (check constraint)
 `Gestor | Consultor | CS | SDR | Analista | Financeiro | Outro`
@@ -74,23 +75,43 @@ lib/
 
 ## Fluxo de dados
 
-1. Clínica preenche formulário em `/` → grava em `clientes` + `diagnosticos`
-2. Equipe acessa `/dashboard` (senha) → lista todos os clientes com scores
-3. Clica no cliente → `/dashboard/[id]` → prontuário completo com 4 abas
+1. Clínica preenche formulário em `/` → grava em `clientes` + `diagnosticos` (diagnóstico inicial)
+2. Para novo diagnóstico de cliente existente: `/dashboard/[id]` → botão "Novo Diagnóstico" → abre `/?cliente_id={id}`
+3. Equipe acessa `/dashboard` (senha) → lista todos os clientes com scores
+4. Clica no cliente → `/dashboard/[id]` → prontuário completo com 4 abas
 
 ## Lógica de análise (`lib/analysis.js`)
 
 - `analyze(data)` → scores por área (comercial/marketing/operacional/financeiro) + saúde total
-- `analyzeICP(data)` → produto AXIS recomendado (Implementação / Starter / Scale) + icpPct
-- `buildDiagnostico(data, produto, plano)` → protocolos, plano de execução, prioridades, metaSmart
+- `analyzeICP(data)` → produto AXIS: `"Método Axis"` (faturamento ≥ R$10k/mês) ou `"Fora do ICP"` / `"A Qualificar"`
+- `buildDiagnostico(data, produto, plano)` → `{ metaSmart, protocolos, planos: {p90, p180, p365}, prioridades }`
 - `buildCMOAnalysis(data, scores, produto, plano)` → SWOT, visão, alavancas, posicionamento
 - `getPacRecomendacoes(produto, plano, data)` → ações PAC personalizadas
+
+**GPS foi removido do sistema de diagnóstico** — GPS é infoproduto vendido separadamente.
+
+## Planos de ação (p90 / p180 / p365)
+
+Cada diagnóstico tem 3 planos gerados automaticamente:
+- **p90** (3 meses): Onboarding → Fundação → Resultados Iniciais
+- **p180** (6 meses): +Conteúdo & Otimização
+- **p365** (12 meses): +Consolidação & Expansão
+
+O prontuário exibe abas selecionáveis. O plano padrão visível é controlado por `plano_horizonte` em `clientes.meta`.
+
+## Tags de cliente
+
+- **Cliente** (padrão): badge azul com ícone UserCheck
+- **Embaixador**: badge dourado com ícone Star preenchido
+
+Visível na lista do dashboard e no prontuário. Editável via modal de edição do cliente.
 
 ## Prontuário — múltiplos diagnósticos
 
 1 cliente → N diagnósticos (cada nova sessão 3/6/9/12 meses = novo registro em `diagnosticos`)
 - `diagIdx` controla qual diagnóstico está sendo visualizado
 - `data = diagnosticos[diagIdx]?.data` é o shortcut para os dados do form
+- Período gravado: `inicial | 3_meses | 6_meses | 9_meses | 12_meses`
 
 ## PDF
 
