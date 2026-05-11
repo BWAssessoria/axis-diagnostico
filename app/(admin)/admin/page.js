@@ -442,13 +442,13 @@ export default async function AdminPage({ searchParams }) {
 
         {/* ── Widgets sidebar ─────────────────────────────────────────── */}
         <div className="flex flex-col gap-4">
-          <ClientGrowthChart clientCount={ativos} />
           <LeadFunnelWidget
             total={clients.length + leads.length}
             leads={leads.length}
             ativos={ativos}
             comPlano={clientsWithPlan.size}
           />
+          <ClientGrowthChart clientCount={ativos} />
         </div>
       </div>
 
