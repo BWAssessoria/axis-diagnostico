@@ -1,24 +1,18 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import {
   ArrowLeft, CheckCircle2, AlertCircle, XCircle, Building2,
   BarChart3, Target, Megaphone, Settings2, Sparkles, Zap,
   Activity, TrendingUp, DollarSign, MapPin, Phone, Users,
   BadgeCheck, ChevronRight, Shield, Brain, Trash2, Edit3,
   Download, FileText, TrendingDown, Minus, X, Save, Info,
-  Lightbulb, AlertTriangle, PlusCircle, Star, UserCheck
+  Lightbulb, AlertTriangle, PlusCircle, Star, UserCheck, Sun, Moon
 } from "lucide-react";
 import {
   analyze, analyzeICP, getPacRecomendacoes,
   buildDiagnostico, buildCMOAnalysis, nivelFn, fmtR, pm
 } from "@/lib/analysis";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 // ─── PALETA ────────────────────────────────────────────────────────────
 const O="#FF4500",OL="#FFF4F0",OB="#FFD4C4";
@@ -26,8 +20,18 @@ const G="#00C853",GL="#E8F9EF";
 const R="#E53935",RL="#FFEBEE";
 const Y="#FF9800",YL="#FFF8E1";
 const B="#2196F3",BL="#E3F2FD";
-const T="#1A1A1A",T2="#6B6B6B",T3="#999";
-const BD="#E8E8E8",BG="#F4F5F7",C="#FFFFFF",DK="#1A1A1A";
+
+function mk(d) {
+  return {
+    T:  d ? "#F0F0F0" : "#1A1A1A",
+    T2: d ? "#A0A0A0" : "#6B6B6B",
+    T3: d ? "#666"    : "#999",
+    BD: d ? "#2A2A2A" : "#E8E8E8",
+    BG: d ? "#141414" : "#F4F5F7",
+    C:  d ? "#1C1C1C" : "#FFFFFF",
+    DK: d ? "#F0F0F0" : "#1A1A1A",
+  };
+}
 
 // ─── TOOLTIPS DAS MÉTRICAS ─────────────────────────────────────────────
 const METRIC_TIPS = {
@@ -47,21 +51,21 @@ const METRIC_TIPS = {
 };
 
 // ─── COMPONENTES BASE ──────────────────────────────────────────────────
-function Bar({ pct, color, height=8 }) {
+function Bar({ pct, color, height=8, bg="#EEE" }) {
   return (
-    <div style={{height,background:"#EEE",borderRadius:10,overflow:"hidden"}}>
+    <div style={{height,background:bg,borderRadius:10,overflow:"hidden"}}>
       <div style={{height:"100%",width:`${pct}%`,background:color,borderRadius:10,transition:"width 0.8s ease"}}/>
     </div>
   );
 }
 
-function Ring({ v, max, color, size=60 }) {
+function Ring({ v, max, color, size=60, track="#EEE" }) {
   const pct = max===0 ? 0 : Math.round(v/max*100);
   const r = size/2-6, circ = 2*Math.PI*r;
   return (
     <div style={{position:"relative",width:size,height:size}}>
       <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#EEE" strokeWidth={5}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={track} strokeWidth={5}/>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5}
           strokeDasharray={circ} strokeDashoffset={circ-(circ*pct/100)} strokeLinecap="round"
           style={{transition:"stroke-dashoffset 0.8s ease"}}/>
@@ -77,7 +81,7 @@ function Tip({ text, children }) {
     <span style={{position:"relative",display:"inline-flex",alignItems:"center"}}
       onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)}>
       {children}
-      <Info size={11} color={T3} style={{marginLeft:4,cursor:"help",flexShrink:0}}/>
+      <Info size={11} color="#999" style={{marginLeft:4,cursor:"help",flexShrink:0}}/>
       {show && (
         <span style={{
           position:"absolute",bottom:"calc(100% + 6px)",left:"50%",transform:"translateX(-50%)",
@@ -138,9 +142,10 @@ export default function ClientePage() {
   const id     = params.id;
   const printRef = useRef(null);
 
+  const [dark,       setDark]       = useState(() => typeof window !== 'undefined' && localStorage.getItem('axis-theme') === 'dark');
   const [cliente,    setCliente]    = useState(null);
   const [diagnosticos, setDiagnosticos] = useState([]);
-  const [diagIdx,    setDiagIdx]    = useState(0); // índice do diagnóstico selecionado
+  const [diagIdx,    setDiagIdx]    = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [tab,        setTab]        = useState("visao");
@@ -153,6 +158,8 @@ export default function ClientePage() {
   const [pdfMode,        setPdfMode]        = useState(false);
   const [planoHorizonte, setPlanoHorizonte] = useState("180");
 
+  const { T, T2, T3, BD, BG, C, DK } = mk(dark);
+
   // data = dados do diagnóstico selecionado (shortcut)
   const data = diagnosticos[diagIdx]?.data || null;
 
@@ -160,10 +167,11 @@ export default function ClientePage() {
     if (!id) return;
     (async () => {
       try {
-        // Buscar cliente
-        const { data: cRow, error: cErr } = await supabase
-          .from("clientes").select("*").eq("id", id).single();
-        if (cErr || !cRow) { setError("Cliente não encontrado."); setLoading(false); return; }
+        const authRes = await fetch('/api/auth');
+        if (!authRes.ok) { router.push('/dashboard'); return; }
+        const res = await fetch(`/api/clients/${id}`);
+        if (!res.ok) { setError("Cliente não encontrado."); setLoading(false); return; }
+        const { cliente: cRow, diagnosticos: diags } = await res.json();
         setCliente(cRow);
         setPlanoHorizonte(cRow.meta?.plano_horizonte || "180");
         setEditFields({
@@ -175,11 +183,7 @@ export default function ClientePage() {
           plano_horizonte:    cRow.meta?.plano_horizonte    || "180",
           tipo_cliente:       cRow.meta?.tipo_cliente       || "cliente",
         });
-        // Buscar todos os diagnósticos (mais recente primeiro)
-        const { data: diags, error: dErr } = await supabase
-          .from("diagnosticos").select("*").eq("cliente_id", id)
-          .order("created_at", { ascending: false });
-        if (!dErr && diags) setDiagnosticos(diags);
+        setDiagnosticos(diags || []);
       } catch { setError("Erro ao carregar dados."); }
       setLoading(false);
     })();
@@ -191,26 +195,40 @@ export default function ClientePage() {
   const cmo      = useMemo(() => (data && analysis && icp) ? buildCMOAnalysis(data, analysis.scores, icp.produto, icp.plano) : null, [data, analysis, icp]);
 
   // ── HANDLERS ──────────────────────────────────────────────────────
+  function toggleDark() {
+    setDark(d => {
+      const next = !d;
+      localStorage.setItem('axis-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }
+
   async function handleDelete() {
     setDeleting(true);
-    await supabase.from("clientes").delete().eq("id", id); // CASCADE deleta diagnosticos
-    router.push("/dashboard");
+    const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+    if (res.ok) router.push("/dashboard");
+    else setDeleting(false);
   }
 
   async function handleSaveEdit() {
     setSaving(true);
     const newMeta = { ...cliente.meta, ...editFields };
-    await supabase.from("clientes").update({ meta: newMeta }).eq("id", id);
-    setCliente(prev => ({ ...prev, meta: newMeta }));
-    setPlanoHorizonte(editFields.plano_horizonte || "180");
+    const res = await fetch(`/api/clients/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meta: newMeta }),
+    });
+    if (res.ok) {
+      setCliente(prev => ({ ...prev, meta: newMeta }));
+      setPlanoHorizonte(editFields.plano_horizonte || "180");
+      setShowEdit(false);
+    }
     setSaving(false);
-    setShowEdit(false);
   }
 
   async function handlePDF() {
     setPdfLoading(true);
     setPdfMode(true);
-    // Aguarda o DOM renderizar todas as abas
     await new Promise(r => setTimeout(r, 500));
     try {
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
@@ -219,7 +237,7 @@ export default function ClientePage() {
       ]);
       const el = printRef.current;
       if (!el) return;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#F4F5F7" });
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: BG });
       const pdf = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
       const W = pdf.internal.pageSize.getWidth();
       const H = pdf.internal.pageSize.getHeight();
@@ -333,6 +351,11 @@ export default function ClientePage() {
             onMouseLeave={e=>e.currentTarget.style.background=C}>
             <Trash2 size={13}/>
           </button>
+          <button onClick={toggleDark}
+            style={{display:"flex",alignItems:"center",justifyContent:"center",width:34,height:34,border:`1px solid ${BD}`,borderRadius:8,background:"none",cursor:"pointer",color:T2,transition:"all 0.2s"}}
+            title={dark ? "Modo claro" : "Modo escuro"}>
+            {dark ? <Sun size={14} color={Y}/> : <Moon size={14}/>}
+          </button>
         </div>
       </div>
 
@@ -395,13 +418,13 @@ export default function ClientePage() {
                 <div style={{fontSize:10,color:T3,marginBottom:6,letterSpacing:0.8,fontWeight:600}}>
                   <Tip text={METRIC_TIPS.saude}>SAÚDE</Tip>
                 </div>
-                <Ring v={Object.values(scores).reduce((a,b)=>a+b,0)} max={Object.values(maxS).reduce((a,b)=>a+b,0)} color={saudeCor} size={76}/>
+                <Ring v={Object.values(scores).reduce((a,b)=>a+b,0)} max={Object.values(maxS).reduce((a,b)=>a+b,0)} color={saudeCor} size={76} track={BD}/>
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{fontSize:10,color:T3,marginBottom:6,letterSpacing:0.8,fontWeight:600}}>
                   <Tip text={METRIC_TIPS.icp}>ICP SCORE</Tip>
                 </div>
-                <Ring v={icp.icpPct} max={100} color={icp.prodCor} size={76}/>
+                <Ring v={icp.icpPct} max={100} color={icp.prodCor} size={76} track={BD}/>
               </div>
             </div>
           </div>
@@ -453,7 +476,7 @@ export default function ClientePage() {
                           <span style={{fontSize:14,fontWeight:800,color:ar.color,minWidth:36,textAlign:"right"}}>{pct}%</span>
                         </div>
                       </div>
-                      <Bar pct={pct} color={ar.color} height={7}/>
+                      <Bar pct={pct} color={ar.color} height={7} bg={BD}/>
                     </div>
                   );
                 })}
@@ -505,9 +528,9 @@ export default function ClientePage() {
                     </div>
                   </div>
                 </div>
-                <Ring v={icp.icpPct} max={100} color={icp.prodCor} size={100}/>
+                <Ring v={icp.icpPct} max={100} color={icp.prodCor} size={100} track={BD}/>
               </div>
-              <Bar pct={icp.icpPct} color={icp.prodCor} height={10}/>
+              <Bar pct={icp.icpPct} color={icp.prodCor} height={10} bg={BD}/>
               <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginTop:20}}>
                 {[
                   {label:"Método Axis",  range:"R$10k+/mês",  color:O,    active:icp.produto==="Método Axis"},
@@ -735,7 +758,7 @@ export default function ClientePage() {
                       </div>
                       <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",maxWidth:280,textAlign:"right"}}>{fase.objetivo}</div>
                     </div>
-                    <div style={{padding:"14px 18px"}}>
+                    <div style={{padding:"14px 18px",background:C}}>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         {fase.acoes.map((acao,j) => (
                           <div key={j} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
