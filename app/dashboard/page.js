@@ -238,13 +238,14 @@ function DashboardMain({ clients, loading, onLogout }) {
 
   const stats = useMemo(() => {
     if (!clients.length) return null;
-    const saudeMedia = Math.round(clients.reduce((s,c) => {
+    const saudeMedia  = Math.round(clients.reduce((s,c) => {
       const r=analyze(c); const t=Object.values(r.scores).reduce((a,b)=>a+b,0); const m=Object.values(r.maxS).reduce((a,b)=>a+b,0); return s+(t/m*100);
     },0) / clients.length);
-    const icpMedia  = Math.round(clients.reduce((s,c) => s+analyzeICP(c).icpPct, 0) / clients.length);
-    const assCount  = clients.filter(c => analyzeICP(c).produto==="Assessoria").length;
-    const implCount = clients.filter(c => analyzeICP(c).produto==="Implementação").length;
-    return { saudeMedia, icpMedia, assCount, implCount };
+    const icpMedia    = Math.round(clients.reduce((s,c) => s+analyzeICP(c).icpPct, 0) / clients.length);
+    const axisCount   = clients.filter(c => analyzeICP(c).produto==="Método Axis").length;
+    const foraCount   = clients.filter(c => analyzeICP(c).produto==="Fora do ICP" || analyzeICP(c).produto==="A Qualificar").length;
+    const embaixCount = clients.filter(c => c.meta_info?.tipo_cliente==="embaixador").length;
+    return { saudeMedia, icpMedia, axisCount, foraCount, embaixCount };
   }, [clients]);
 
   const TABS = [
@@ -295,11 +296,11 @@ function DashboardMain({ clients, loading, onLogout }) {
         {stats && tab !== "equipe" && (
           <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:28}}>
             {[
-              {label:"Total Leads",    val:clients.length,        color:T,  Icon:Users,      bg:"#F0F0F2"},
-              {label:"Saúde Média",    val:stats.saudeMedia+"%",  color:G,  Icon:Activity,   bg:GL},
-              {label:"ICP Médio",      val:stats.icpMedia+"%",    color:B,  Icon:Target,     bg:BL},
-              {label:"Assessoria",     val:stats.assCount,        color:O,  Icon:BadgeCheck, bg:OL},
-              {label:"Implementação",  val:stats.implCount,       color:Y,  Icon:Settings2,  bg:YL},
+              {label:"Total Clientes", val:clients.length,         color:T,  Icon:Users,      bg:"#F0F0F2"},
+              {label:"Saúde Média",    val:stats.saudeMedia+"%",   color:G,  Icon:Activity,   bg:GL},
+              {label:"ICP Médio",      val:stats.icpMedia+"%",     color:B,  Icon:Target,     bg:BL},
+              {label:"Método Axis",    val:stats.axisCount,        color:O,  Icon:BadgeCheck, bg:OL},
+              {label:"Embaixadores",   val:stats.embaixCount,      color:Y,  Icon:Star,       bg:YL},
             ].map(({Icon,...st}) => (
               <div key={st.label} style={{background:C,borderRadius:14,padding:"16px 18px",border:`1px solid ${BD}`,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
                 <div style={{width:36,height:36,borderRadius:10,background:st.bg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}>
@@ -393,9 +394,9 @@ function DashboardMain({ clients, loading, onLogout }) {
               <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:T2,marginBottom:16}}>DISTRIBUIÇÃO POR PRODUTO</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
                 {[
-                  {label:"Implementação", color:O, count:clients.filter(c=>analyzeICP(c).produto==="Implementação").length},
-                  {label:"Starter",       color:G, count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Starter";}).length},
-                  {label:"Scale",         color:B, count:clients.filter(c=>{const i=analyzeICP(c);return i.produto==="Assessoria"&&i.plano==="Scale";}).length},
+                  {label:"Método Axis",  color:O,      count:clients.filter(c=>analyzeICP(c).produto==="Método Axis").length},
+                  {label:"Embaixadores", color:Y,      count:clients.filter(c=>c.meta_info?.tipo_cliente==="embaixador").length},
+                  {label:"Fora do ICP",  color:"#999", count:clients.filter(c=>["Fora do ICP","A Qualificar"].includes(analyzeICP(c).produto)).length},
                 ].map(p => (
                   <div key={p.label} style={{padding:"16px",borderRadius:12,background:BG,border:`1.5px solid ${p.color}33`,textAlign:"center"}}>
                     <div style={{fontSize:28,fontWeight:900,color:p.color}}>{p.count}</div>
