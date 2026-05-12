@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, AlertCircle, TrendingDown, UserPlus } from 'lucide-react';
+import { Users, AlertCircle, TrendingDown, Sparkles } from 'lucide-react';
 
 function Sparkline({ data, color, uid }) {
   const w = 72, h = 32;
@@ -38,7 +38,7 @@ const SPARKS = {
   growth: [1, 2, 1.5, 3, 2, 4, 3, 5, 4.5, 6],
 };
 
-export default function KpiGrid({ ativos, pausados, churn, leads }) {
+export default function KpiGrid({ ativos, pausados, churn, semPlano }) {
   const cards = [
     {
       label: 'Ativos',
@@ -68,13 +68,13 @@ export default function KpiGrid({ ativos, pausados, churn, leads }) {
       caption: 'cancelamentos',
     },
     {
-      label: 'Leads',
-      value: leads,
-      icon: UserPlus,
-      color: '#60a5fa',
-      rgb: '96,165,250',
-      spark: SPARKS.growth,
-      caption: 'em prospecção',
+      label: 'Sem Plano',
+      value: semPlano,
+      icon: Sparkles,
+      color: '#F0C820',
+      rgb: '240,200,32',
+      spark: SPARKS.flat,
+      caption: 'aguardando plano',
     },
   ];
 

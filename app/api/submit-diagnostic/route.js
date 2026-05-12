@@ -64,6 +64,7 @@ export async function POST(request) {
       owner_name: answers.nome,
       phone: answers.whatsapp,
       status: 'active',
+      start_date: new Date().toISOString(),
     })
     .select('id')
     .single();

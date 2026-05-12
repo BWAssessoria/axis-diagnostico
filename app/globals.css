@@ -107,6 +107,72 @@
   --info:    #3b82f6;
 }
 
+/* ── AXIS Light Theme — ativado via classe .light no <html> ──────────────── */
+.light {
+  --background:          oklch(0.985 0.002 266);
+  --foreground:          oklch(0.12 0.020 266);
+  --card:                oklch(1.0 0 0);
+  --card-foreground:     oklch(0.12 0.020 266);
+  --popover:             oklch(0.975 0.004 266);
+  --popover-foreground:  oklch(0.12 0.020 266);
+  --primary:             oklch(0.68 0.185 88);
+  --primary-foreground:  oklch(0.12 0.030 88);
+  --secondary:           oklch(0.94 0.008 266);
+  --secondary-foreground:oklch(0.12 0.020 266);
+  --muted:               oklch(0.95 0.005 266);
+  --muted-foreground:    oklch(0.45 0.015 266);
+  --accent:              oklch(0.68 0.185 88);
+  --accent-foreground:   oklch(0.12 0.030 88);
+  --destructive:         oklch(0.55 0.230 29);
+  --border:              oklch(0.87 0.010 266);
+  --input:               oklch(0.93 0.007 266);
+  --ring:                oklch(0.68 0.185 88);
+
+  --sidebar:                  oklch(0.975 0.005 266);
+  --sidebar-foreground:       oklch(0.12 0.020 266);
+  --sidebar-primary:          oklch(0.68 0.185 88);
+  --sidebar-primary-foreground: oklch(0.12 0.030 88);
+  --sidebar-accent:           oklch(0.93 0.007 266);
+  --sidebar-accent-foreground:oklch(0.12 0.020 266);
+  --sidebar-border:           oklch(0.87 0.010 266);
+  --sidebar-ring:             oklch(0.68 0.185 88);
+
+  --bg:              #F5F5FA;
+  --bg-surface:      #FFFFFF;
+  --bg-elevated:     #EDEDF5;
+  --axis-border:     #DCDCE8;
+  --axis-border-sub: #E8E8F2;
+
+  --text-primary:   #12101E;
+  --text-secondary: #5A5878;
+  --text-muted:     #9896B0;
+
+  --bronze:        #B08010;
+  --bronze-hover:  #C89820;
+  --bronze-dim:    #906800;
+  --bronze-glow:   rgba(176, 128, 16, 0.10);
+  --bronze-border: rgba(176, 128, 16, 0.28);
+}
+
+.light ::-webkit-scrollbar-track   { background: var(--bg); }
+.light ::-webkit-scrollbar-thumb   { background: var(--axis-border); }
+.light ::-webkit-scrollbar-thumb:hover { background: #C0C0D0; }
+
+.light .axis-glass {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light .axis-glass-light {
+  background: rgba(245, 245, 250, 0.80);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.light .axis-sticky {
+  background: rgba(245, 245, 250, 0.92);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
 /* ── Tailwind theme inline bridge (shadcn → Tailwind utilities) ───────────── */
 @theme inline {
   --font-heading: var(--font-sans);

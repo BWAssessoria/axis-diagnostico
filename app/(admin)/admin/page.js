@@ -49,13 +49,11 @@ function DonutMini({ pct, color }) {
   );
 }
 
-export default async function AdminPage({ searchParams }) {
+export default async function AdminPage() {
   const supabase = await createClient();
-  const sp = await searchParams;
-  const tab = sp?.tab ?? 'clients';
 
   const [{ data: all }, { data: plans }, { data: allMetrics }, { data: lastAnalyses }] = await Promise.all([
-    supabase.from('clients').select('id, business_name, owner_name, status, start_date, health_score, products(name, slug)').order('created_at', { ascending: false }),
+    supabase.from('clients').select('id, business_name, owner_name, status, start_date, created_at, health_score, products(name, slug)').order('created_at', { ascending: false }),
     supabase.from('analyses').select('client_id, title').like('title', 'Plano Estratégico%'),
     supabase.from('metrics_monthly').select('client_id, meta_mensal_pct, fat_total, month, year').order('year', { ascending: false }).order('month', { ascending: false }),
     supabase.from('analyses').select('client_id, created_at').order('created_at', { ascending: false }),
@@ -84,8 +82,6 @@ export default async function AdminPage({ searchParams }) {
   }
 
   const clients = all?.filter((c) => c.status !== 'lead') ?? [];
-  const leads   = all?.filter((c) => c.status === 'lead') ?? [];
-  const rows    = tab === 'leads' ? leads : clients;
 
   const ativos   = clients.filter((c) => c.status === 'active').length;
   const pausados = clients.filter((c) => c.status === 'paused').length;
@@ -123,7 +119,7 @@ export default async function AdminPage({ searchParams }) {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Carteira</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Visão geral de clientes e leads</p>
+          <p className="mt-1 text-sm text-muted-foreground">Visão geral da carteira de clientes</p>
         </div>
         <div className="flex items-center gap-2">
           <RecalcularHealthButton clientIds={clients.filter(c => c.status === 'active').map(c => c.id)} />
@@ -147,22 +143,22 @@ export default async function AdminPage({ searchParams }) {
 
       {/* ── KPI Grid (client component com sparklines) ──────────────────── */}
       <div className="mb-6">
-        <KpiGrid ativos={ativos} pausados={pausados} churn={churn} leads={leads.length} />
+        <KpiGrid ativos={ativos} pausados={pausados} churn={churn} semPlano={semPlano} />
       </div>
 
       {/* ── Widgets de carteira ──────────────────────────────────────────── */}
       <div className="mb-8 grid grid-cols-2 gap-4">
         <LeadFunnelWidget
-          total={clients.length + leads.length}
-          leads={leads.length}
+          total={clients.length}
           ativos={ativos}
+          pausados={pausados}
           comPlano={clientsWithPlan.size}
         />
-        <ClientGrowthChart clientCount={ativos} />
+        <ClientGrowthChart clients={clients} />
       </div>
 
       {/* ── Prioridades da Carteira ─────────────────────────────────────── */}
-      {(totalAlerts > 0 && tab !== 'leads') && (
+      {totalAlerts > 0 && (
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-2.5">
             <Bell size={14} className="text-muted-foreground" />
@@ -320,38 +316,24 @@ export default async function AdminPage({ searchParams }) {
       {/* ── Tabela ──────────────────────────────────────────────────────── */}
       <div>
         <div>
-          {/* Tabs */}
-          <div
-            className="mb-5 flex gap-1 rounded-xl p-1 w-fit"
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--axis-border)' }}
-          >
-            {[
-              { key: 'clients', label: `Clientes (${clients.length})` },
-              { key: 'leads',   label: `Leads (${leads.length})`      },
-            ].map((t) => (
-              <Link
-                key={t.key}
-                href={`/admin?tab=${t.key}`}
-                className="rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-150"
-                style={
-                  tab === t.key
-                    ? { background: 'var(--bg-elevated)', color: 'var(--text-primary)' }
-                    : { color: 'var(--text-muted)' }
-                }
-              >
-                {t.label}
-              </Link>
-            ))}
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-foreground">Clientes</h2>
+            <span
+              className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold"
+              style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+            >
+              {clients.length}
+            </span>
           </div>
 
-          {rows.length === 0 ? (
+          {clients.length === 0 ? (
             <div
               className="rounded-2xl border border-dashed border-border py-20 text-center"
               style={{ background: 'var(--bg-surface)' }}
             >
               <Users size={32} className="mx-auto mb-3 text-muted-foreground/20" />
               <p className="text-sm text-muted-foreground">
-                {tab === 'leads' ? 'Nenhum lead cadastrado.' : 'Nenhum cliente cadastrado ainda.'}
+                Nenhum cliente cadastrado ainda.
               </p>
               <Link href="/admin/clients/new" className="mt-2 inline-block text-sm hover:underline" style={{ color: 'var(--bronze)' }}>
                 Cadastrar primeiro →
@@ -373,7 +355,7 @@ export default async function AdminPage({ searchParams }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((c) => {
+                  {clients.map((c) => {
                     const h = getHealth(c.id);
                     const m = latestMetric[c.id];
                     const pctNum = m?.meta_mensal_pct;

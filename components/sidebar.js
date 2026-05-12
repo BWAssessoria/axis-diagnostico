@@ -6,11 +6,11 @@ import { logout } from '@/app/actions/auth';
 import {
   LayoutGrid, Package, BarChart2, LogOut,
   UserPlus, Plus, AlertTriangle, RefreshCw,
-  ChevronDown, ChevronRight, Zap,
+  ChevronDown, ChevronRight, Zap, Sun, Moon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const NAV_GROUPS = [
   {
@@ -168,6 +168,20 @@ function NavItem({ item, pathname }) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [theme, setTheme] = useState('dark');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('axis-theme') || 'dark';
+    setTheme(saved);
+    document.documentElement.classList.toggle('light', saved === 'light');
+  }, []);
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('axis-theme', next);
+    document.documentElement.classList.toggle('light', next === 'light');
+  }
 
   return (
     <aside className="relative flex h-screen w-60 shrink-0 flex-col border-r border-white/[0.06]" style={{ background: 'var(--bg-surface)' }}>
@@ -234,6 +248,16 @@ export default function Sidebar() {
             <p className="truncate text-[10px] text-muted-foreground/60">AXIS 360</p>
           </div>
         </div>
+
+        <button
+          onClick={toggleTheme}
+          className="mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:bg-secondary/60 hover:text-muted-foreground"
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
+            {theme === 'dark' ? <Sun size={14} strokeWidth={2} /> : <Moon size={14} strokeWidth={2} />}
+          </span>
+          {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+        </button>
 
         <form action={logout}>
           <button

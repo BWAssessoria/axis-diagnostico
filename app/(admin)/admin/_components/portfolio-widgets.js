@@ -1,12 +1,27 @@
 'use client';
 
-const MES = ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar', 'Abr'];
+export function ClientGrowthChart({ clients = [] }) {
+  const now = new Date();
+  const months = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 6 + i, 1);
+    return {
+      label: d.toLocaleString('pt-BR', { month: 'short' }).replace('.', ''),
+      endOfMonth: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+    };
+  });
 
-export function ClientGrowthChart({ clientCount }) {
-  const values = [1, 1, 2, 2, 2, 2, Math.max(clientCount, 1)];
+  const values = months.map(({ endOfMonth }) =>
+    clients.filter((c) => {
+      const joined = new Date(c.start_date || c.created_at);
+      return !isNaN(joined.getTime()) && joined <= endOfMonth;
+    }).length
+  );
+
+  const clientCount = clients.length;
+  const MES = months.map((m) => m.label);
 
   const W = 260, H = 60;
-  const maxV = Math.max(...values);
+  const maxV = Math.max(...values, 1);
   const minV = 0;
   const range = maxV - minV || 1;
 
@@ -29,7 +44,7 @@ export function ClientGrowthChart({ clientCount }) {
       </p>
       <div className="mt-1 flex items-baseline gap-2">
         <span className="text-2xl font-black text-foreground">{clientCount}</span>
-        <span className="text-xs text-muted-foreground">clientes ativos</span>
+        <span className="text-xs text-muted-foreground">clientes totais</span>
       </div>
 
       <div className="mt-4 w-full">
@@ -58,13 +73,13 @@ export function ClientGrowthChart({ clientCount }) {
   );
 }
 
-export function LeadFunnelWidget({ total, leads, ativos, comPlano }) {
+export function LeadFunnelWidget({ total, ativos, pausados, comPlano }) {
   const safe = Math.max(total, 1);
   const steps = [
-    { label: 'Contatos totais',  value: total,    pct: 100,                         color: '#6E6C84' },
-    { label: 'Leads ativos',     value: leads,    pct: (leads    / safe) * 100,     color: '#60a5fa' },
-    { label: 'Clientes ativos',  value: ativos,   pct: (ativos   / safe) * 100,     color: '#22c55e' },
-    { label: 'Com plano gerado', value: comPlano, pct: (comPlano / safe) * 100,     color: '#F0C820' },
+    { label: 'Total da carteira', value: total,    pct: 100,                          color: '#6E6C84' },
+    { label: 'Clientes ativos',   value: ativos,   pct: (ativos   / safe) * 100,      color: '#22c55e' },
+    { label: 'Com plano gerado',  value: comPlano, pct: (comPlano / safe) * 100,      color: '#F0C820' },
+    { label: 'Pausados',          value: pausados, pct: (pausados / safe) * 100,      color: '#eab308' },
   ];
 
   return (
@@ -73,7 +88,7 @@ export function LeadFunnelWidget({ total, leads, ativos, comPlano }) {
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--axis-border)' }}
     >
       <p className="mb-4 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-        Pipeline de Conversão
+        Visão da Carteira
       </p>
       <div className="space-y-4">
         {steps.map((step) => (
