@@ -10,13 +10,13 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* AXIS dark palette — ardósia escura premium */
-  --color-axis-950:  #080A10;
-  --color-axis-900:  #0C0E18;
-  --color-axis-800:  #131520;
-  --color-axis-700:  #1A1C2C;
-  --color-axis-600:  #23253A;
-  --color-axis-500:  #2E3048;
+  /* AXIS slate premium palette — GitHub dark inspired */
+  --color-axis-950:  #010409;
+  --color-axis-900:  #0D1117;
+  --color-axis-800:  #161B22;
+  --color-axis-700:  #21262D;
+  --color-axis-600:  #30363D;
+  --color-axis-500:  #3D444D;
 
   /* Dourado — amarelo-ouro vibrante, claramente dourado */
   --color-bronze-900: #2A1E00;
@@ -42,26 +42,26 @@
   --color-warm-900: #151328;
 }
 
-/* ── shadcn/ui CSS variables — AXIS Dark Theme (always dark) ─────────────── */
+/* ── shadcn/ui CSS variables — AXIS Slate Premium Dark ───────────────────── */
 :root {
-  /* Ardósia escura premium + ouro */
-  --background:          oklch(0.048 0.020 266);   /* #0C0E18 */
-  --foreground:          oklch(0.968 0.006 278);   /* #F0EFF8 */
-  --card:                oklch(0.075 0.026 266);   /* #131520 */
-  --card-foreground:     oklch(0.968 0.006 278);
-  --popover:             oklch(0.108 0.030 266);   /* #1A1C2C */
-  --popover-foreground:  oklch(0.968 0.006 278);
+  /* Slate azulado premium — GitHub dark / Tailwind UI */
+  --background:          oklch(0.090 0.014 266);   /* #0D1117 */
+  --foreground:          oklch(0.935 0.008 265);   /* #E6EDF3 */
+  --card:                oklch(0.115 0.018 266);   /* #161B22 */
+  --card-foreground:     oklch(0.935 0.008 265);
+  --popover:             oklch(0.160 0.015 266);   /* #21262D */
+  --popover-foreground:  oklch(0.935 0.008 265);
   --primary:             oklch(0.838 0.190 88);    /* #F0C820 — ouro vibrante */
   --primary-foreground:  oklch(0.15 0.030 88);
-  --secondary:           oklch(0.108 0.030 266);   /* #1A1C2C */
-  --secondary-foreground:oklch(0.968 0.006 278);
-  --muted:               oklch(0.075 0.026 266);   /* #131520 */
-  --muted-foreground:    oklch(0.390 0.025 266);   /* muted slate */
+  --secondary:           oklch(0.160 0.015 266);   /* #21262D */
+  --secondary-foreground:oklch(0.935 0.008 265);
+  --muted:               oklch(0.115 0.018 266);   /* #161B22 */
+  --muted-foreground:    oklch(0.620 0.010 266);   /* #8B949E */
   --accent:              oklch(0.838 0.190 88);    /* ouro vibrante */
   --accent-foreground:   oklch(0.15 0.030 88);
   --destructive:         oklch(0.628 0.258 29);
-  --border:              oklch(0.160 0.030 266);   /* #23253A */
-  --input:               oklch(0.108 0.030 266);   /* #1A1C2C */
+  --border:              oklch(0.225 0.012 266);   /* #30363D */
+  --input:               oklch(0.160 0.015 266);   /* #21262D */
   --ring:                oklch(0.838 0.190 88);    /* ouro vibrante */
 
   --radius: 0.75rem;
@@ -73,26 +73,26 @@
   --chart-4: oklch(0.628 0.258 29);   /* red */
   --chart-5: oklch(0.580 0.200 264);  /* blue */
 
-  /* Sidebar */
-  --sidebar:                  oklch(0.048 0.020 266);
-  --sidebar-foreground:       oklch(0.968 0.006 278);
+  /* Sidebar — ligeiramente mais escuro que o fundo para separação */
+  --sidebar:                  oklch(0.078 0.013 266);
+  --sidebar-foreground:       oklch(0.935 0.008 265);
   --sidebar-primary:          oklch(0.838 0.190 88);
   --sidebar-primary-foreground: oklch(0.15 0.030 88);
-  --sidebar-accent:           oklch(0.108 0.030 266);
-  --sidebar-accent-foreground:oklch(0.968 0.006 278);
-  --sidebar-border:           oklch(0.160 0.030 266);
+  --sidebar-accent:           oklch(0.160 0.015 266);
+  --sidebar-accent-foreground:oklch(0.935 0.008 265);
+  --sidebar-border:           oklch(0.180 0.012 266);
   --sidebar-ring:             oklch(0.838 0.190 88);
 
   /* ── AXIS semantic shortcuts ─────────────────────────────────────────────── */
-  --bg:              #0C0E18;
-  --bg-surface:      #131520;
-  --bg-elevated:     #1A1C2C;
-  --axis-border:     #23253A;
-  --axis-border-sub: #191B28;
+  --bg:              #0D1117;
+  --bg-surface:      #161B22;
+  --bg-elevated:     #21262D;
+  --axis-border:     #30363D;
+  --axis-border-sub: #21262D;
 
-  --text-primary:   #F0EFF8;
-  --text-secondary: #9896B0;
-  --text-muted:     #4A4860;
+  --text-primary:   #E6EDF3;
+  --text-secondary: #8B949E;
+  --text-muted:     #484F58;
 
   /* Ouro vibrante — amarelo-dourado, claramente gold */
   --bronze:        #F0C820;
@@ -101,10 +101,10 @@
   --bronze-glow:   rgba(240, 200, 32, 0.12);
   --bronze-border: rgba(240, 200, 32, 0.30);
 
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger:  #ef4444;
-  --info:    #3b82f6;
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger:  #f85149;
+  --info:    #58a6ff;
 }
 
 /* ── AXIS Light Theme — ativado via classe .light no <html> ──────────────── */
@@ -257,29 +257,32 @@
   background: var(--bg-surface);
   border: 1px solid var(--axis-border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.03) inset;
 }
 
 .axis-card-elevated {
   background: var(--bg-elevated);
   border: 1px solid var(--axis-border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
 }
 
 .axis-glow-sm {
-  box-shadow: 0 0 24px rgba(240, 200, 32, 0.12);
+  box-shadow: 0 0 24px rgba(240, 200, 32, 0.14);
 }
 
 .axis-glow {
-  box-shadow: 0 0 48px rgba(240, 200, 32, 0.20);
+  box-shadow: 0 0 48px rgba(240, 200, 32, 0.22);
 }
 
 .axis-gradient-card {
   background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
   border: 1px solid var(--axis-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.40);
 }
 
 .axis-bronze-gradient {
-  background: linear-gradient(135deg, rgba(240,200,32,0.14) 0%, rgba(240,200,32,0.04) 100%);
+  background: linear-gradient(135deg, rgba(240,200,32,0.12) 0%, rgba(240,200,32,0.03) 100%);
   border: 1px solid var(--bronze-border);
 }
 
@@ -287,14 +290,14 @@
 .axis-glass {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: rgba(26, 28, 44, 0.88);
+  background: rgba(22, 27, 34, 0.90);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .axis-glass-light {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(19, 21, 32, 0.80);
+  background: rgba(13, 17, 23, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -345,19 +348,21 @@
   z-index: 10;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  background: rgba(12, 14, 24, 0.90);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(13, 17, 23, 0.92);
+  border-bottom: 1px solid var(--axis-border);
 }
 
 /* ── Surface utilities (white/08 border semantic) ────────────────────────── */
 .axis-surface {
   background: var(--bg-surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--axis-border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
 }
 
 .axis-surface-elevated {
   background: var(--bg-elevated);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--axis-border);
   border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.30);
 }
