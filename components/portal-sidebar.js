@@ -50,7 +50,7 @@ export default function PortalSidebar({ clientName }) {
   const pathname = usePathname();
 
   return (
-    <aside className="relative flex h-screen w-64 shrink-0 flex-col border-r bg-card">
+    <aside className="relative flex h-screen w-60 shrink-0 flex-col border-r border-white/[0.06]" style={{ background: 'var(--bg-surface)' }}>
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-32 opacity-30"
         style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(240,200,32,0.12) 0%, transparent 70%)' }}

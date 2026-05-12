@@ -208,6 +208,13 @@ export default async function ClientDetailPage({ params, searchParams }) {
         </div>
       </div>
 
+      {/* Prova de Resultado */}
+      <RevenueEvolutionCard
+        metricsData={metricsData ?? []}
+        diagnosticAnswers={diagnostic?.answers ?? {}}
+        daysOnContract={daysOnContract}
+      />
+
       {/* Shadow Revenue Alert */}
       {shadowRevenue != null && shadowRevenue >= 1000 && (
         <div
@@ -332,6 +339,114 @@ export default async function ClientDetailPage({ params, searchParams }) {
 const BRL_FMT = (v) => v != null
   ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v)
   : null;
+
+const BRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v ?? 0);
+const MONTHS_PT = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const parseMoney = (v) => { if (!v) return 0; const n = String(v).replace(/[^\d.,]/g,'').replace(/\./g,'').replace(',','.'); return parseFloat(n) || 0; };
+
+function RevenueEvolutionCard({ metricsData, diagnosticAnswers, daysOnContract }) {
+  const diagFat = parseMoney(diagnosticAnswers?.fat_atual);
+  const sorted  = [...metricsData].sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month);
+  const hasReal = sorted.length > 0;
+
+  if (!diagFat && !hasReal) return null;
+
+  // Build point series: diagnostic baseline → real months → 3-month projection
+  const points = [];
+  if (diagFat > 0) points.push({ label: 'Diag.', value: diagFat, projected: false });
+  for (const m of sorted) {
+    if (m.fat_total) points.push({ label: MONTHS_PT[m.month], value: parseFloat(m.fat_total), projected: false });
+  }
+
+  const lastReal = points.filter(p => !p.projected).at(-1);
+  if (lastReal) {
+    const lastM = sorted.at(-1);
+    let py = lastM?.year ?? new Date().getFullYear();
+    let pm = lastM?.month ?? new Date().getMonth() + 1;
+    for (let i = 1; i <= 3; i++) {
+      pm++; if (pm > 12) { pm = 1; py++; }
+      points.push({ label: MONTHS_PT[pm], value: lastReal.value * Math.pow(1.10, i), projected: true });
+    }
+  }
+
+  if (points.length < 2) return null;
+
+  const realPoints  = points.filter(p => !p.projected);
+  const firstReal   = realPoints[0];
+  const lastRealPt  = realPoints.at(-1);
+  const growth      = realPoints.length >= 2 ? ((lastRealPt.value - firstReal.value) / firstReal.value) * 100 : null;
+
+  const W = 360, H = 72;
+  const allVals = points.map(p => p.value);
+  const maxV = Math.max(...allVals), minV = Math.min(...allVals) * 0.88;
+  const range = maxV - minV || 1;
+  const toY   = (v) => H - ((v - minV) / range) * H * 0.84 - 2;
+  const toX   = (i) => parseFloat(((i / (points.length - 1)) * W).toFixed(2));
+
+  const pts       = points.map((p, i) => ({ x: toX(i), y: toY(p.value), projected: p.projected }));
+  const realPts   = pts.filter((_, i) => !points[i].projected);
+  const realLine  = realPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`).join(' ');
+  const realArea  = `${realLine} L${realPts.at(-1).x} ${H} L${realPts[0].x} ${H} Z`;
+  const projStart = realPts.at(-1);
+  const projPts   = [projStart, ...pts.filter((_, i) => points[i].projected)];
+  const projLine  = projPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`).join(' ');
+
+  return (
+    <div className="mb-8 overflow-hidden rounded-2xl" style={{ border: '1px solid var(--bronze-border)', background: 'var(--bg-surface)' }}>
+      <div className="flex items-start justify-between gap-6 px-6 pt-6 pb-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--bronze)', opacity: 0.75 }}>
+            Prova de Resultado AXIS
+          </p>
+          <h3 className="mt-1 text-xl font-black text-foreground">
+            {growth != null && growth > 0
+              ? `+${growth.toFixed(0)}% de crescimento`
+              : lastRealPt ? BRL(lastRealPt.value) + '/mês' : 'Evolução de faturamento'}
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {daysOnContract ? `${daysOnContract} dias com a AXIS` : ''}
+            {!hasReal ? ' · projeção com Método Axis (+10%/mês)' : ''}
+          </p>
+        </div>
+        {firstReal !== lastRealPt && (
+          <div className="flex shrink-0 gap-6 text-right">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Entrada</p>
+              <p className="mt-0.5 text-base font-bold text-foreground">{BRL(firstReal.value)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Atual</p>
+              <p className="mt-0.5 text-base font-bold" style={{ color: 'var(--bronze)' }}>{BRL(lastRealPt.value)}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="px-4 pb-5">
+        <svg width="100%" viewBox={`0 0 ${W} ${H + 22}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+          <defs>
+            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F0C820" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#F0C820" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={realArea} fill="url(#revGrad)" />
+          <path d={realLine} fill="none" stroke="#F0C820" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={projLine} fill="none" stroke="#F0C820" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 3" opacity="0.40" />
+          {realPts.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r={i === realPts.length - 1 ? 3.5 : 2} fill="#F0C820" opacity={i === realPts.length - 1 ? 1 : 0.65} />
+          ))}
+          {points.map((point, i) => (
+            <text key={i} x={toX(i)} y={H + 15} textAnchor={i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}
+              fontSize="9" fill={point.projected ? '#484F58' : '#8B949E'} fontStyle={point.projected ? 'italic' : 'normal'}>
+              {point.label}
+            </text>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function QuickStats({ answers, currentRevenue, roiPct, metricMonth }) {
   const diagnosticItems = [
