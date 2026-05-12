@@ -7,10 +7,12 @@ import {
   LayoutGrid, Package, BarChart2, LogOut,
   UserPlus, Plus, AlertTriangle, RefreshCw,
   ChevronDown, ChevronRight, Zap, Sun, Moon,
+  Users, Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 const NAV_GROUPS = [
   {
@@ -42,6 +44,16 @@ const NAV_GROUPS = [
         label: 'Custos de IA',
         href: '/admin/usage',
         icon: BarChart2,
+      },
+    ],
+  },
+  {
+    section: 'Sistema',
+    items: [
+      {
+        label: 'Acessos',
+        href: '/admin/settings/users',
+        icon: Users,
       },
     ],
   },
@@ -169,11 +181,23 @@ function NavItem({ item, pathname }) {
 export default function Sidebar() {
   const pathname = usePathname();
   const [theme, setTheme] = useState('dark');
+  const [userMeta, setUserMeta] = useState({ name: '', email: '', avatar: null });
 
   useEffect(() => {
     const saved = localStorage.getItem('axis-theme') || 'dark';
     setTheme(saved);
     document.documentElement.classList.toggle('light', saved === 'light');
+
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserMeta({
+          name:   user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin',
+          email:  user.email || '',
+          avatar: user.user_metadata?.avatar_url || null,
+        });
+      }
+    });
   }, []);
 
   function toggleTheme() {
@@ -182,6 +206,8 @@ export default function Sidebar() {
     localStorage.setItem('axis-theme', next);
     document.documentElement.classList.toggle('light', next === 'light');
   }
+
+  const initial = (userMeta.name || 'A')[0].toUpperCase();
 
   return (
     <aside className="relative flex h-screen w-60 shrink-0 flex-col border-r border-white/[0.06]" style={{ background: 'var(--bg-surface)' }}>
@@ -236,18 +262,27 @@ export default function Sidebar() {
       {/* Bottom */}
       <div className="px-3 pb-5">
         <Separator className="mb-3 opacity-30" />
-        <div className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2">
+
+        {/* Profile link */}
+        <Link
+          href="/admin/settings/profile"
+          className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-secondary/60"
+        >
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold"
             style={{ background: 'var(--bronze-glow)', color: 'var(--bronze)', border: '1px solid var(--bronze-border)' }}
           >
-            A
+            {userMeta.avatar
+              ? <img src={userMeta.avatar} alt="" className="h-full w-full object-cover" />
+              : initial
+            }
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-foreground">Admin</p>
-            <p className="truncate text-[10px] text-muted-foreground/60">AXIS 360</p>
+            <p className="truncate text-xs font-medium text-foreground leading-none">{userMeta.name}</p>
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground/60 leading-none">{userMeta.email}</p>
           </div>
-        </div>
+          <Settings size={11} className="shrink-0 text-muted-foreground/30" />
+        </Link>
 
         <button
           onClick={toggleTheme}
