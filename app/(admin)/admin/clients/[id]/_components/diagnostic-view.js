@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FileDown } from 'lucide-react';
 
 const ALL_SECTIONS = [
   {
@@ -122,8 +123,29 @@ const ALL_SECTIONS = [
 // Flatten all fields for progress calculation
 const ALL_FIELDS = ALL_SECTIONS.flatMap((t) => t.sections.flatMap((s) => s.fields));
 
-export default function DiagnosticView({ answers, createdAt }) {
+export default function DiagnosticView({ answers, createdAt, clientId }) {
   const [activeTab, setActiveTab] = useState(0);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExportPdf() {
+    setExporting(true);
+    try {
+      const res = await fetch(`/api/pdf/diagnostic/${clientId}`);
+      if (!res.ok) throw new Error('Erro ao gerar PDF');
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = res.headers.get('content-disposition')
+        ?.match(/filename="(.+)"/)?.[1] ?? 'diagnostico.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const totalFields  = ALL_FIELDS.length;
   const filledFields = ALL_FIELDS.filter((f) => answers[f.key]).length;
@@ -139,7 +161,19 @@ export default function DiagnosticView({ answers, createdAt }) {
       <div className="mb-5 rounded-xl border border-white/[0.07] p-4" style={{ background: 'var(--bg-surface)' }}>
         <div className="mb-2 flex items-center justify-between">
           <span className="axis-label">Diagnóstico preenchido</span>
-          <span className="text-xs font-semibold text-foreground">{pct}% <span className="font-normal text-muted-foreground">({filledFields}/{totalFields} campos)</span></span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-foreground">{pct}% <span className="font-normal text-muted-foreground">({filledFields}/{totalFields} campos)</span></span>
+            {clientId && (
+              <button
+                onClick={handleExportPdf}
+                disabled={exporting}
+                className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground disabled:opacity-50"
+              >
+                <FileDown size={12} />
+                {exporting ? 'Gerando...' : 'PDF'}
+              </button>
+            )}
+          </div>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
           <div

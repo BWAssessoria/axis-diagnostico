@@ -262,7 +262,7 @@ export default async function ClientDetailPage({ params, searchParams }) {
                 <div className="mb-4 flex justify-end">
                   <GeneratePlanButton clientId={id} hasDiagnostic={true} />
                 </div>
-                <DiagnosticView answers={diagnostic.answers} createdAt={diagnostic.created_at} />
+                <DiagnosticView answers={diagnostic.answers} createdAt={diagnostic.created_at} clientId={id} />
               </div>
             )
             : (
